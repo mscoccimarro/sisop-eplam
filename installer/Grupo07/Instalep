@@ -1,6 +1,6 @@
 #!/bin/bash
 GRUPO=$(pwd)
-DEF_EXE_DIR="/bin"
+DIRBIN="/bin"
 RESERVED="dirconf"
 VALID="N"
 clear
@@ -10,20 +10,20 @@ echo -e "- Todos los directorios deben ser ingresados sin '/' al inicio.\n"
 ## Request exec directory
 while [ $VALID == "N" ]; do
   ## Prompt for exec directory
-  read -p "Defina el directorio de ejecutables ($GRUPO$DEF_EXE_DIR): " EXE_DIR
+  read -p "Defina el directorio de ejecutables ($GRUPO$DIRBIN): " UINPUT 
   ## Validate user input
-  if [ ! -z "$EXE_DIR" -a "$EXE_DIR" != " " ]; then
+  if [ ! -z "$UINPUT" -a "$UINPUT" != " " ]; then
     VALID="Y"
     for rname in $RESERVED; do
-      if [ $EXE_DIR == $rname ]; then
-	echo -e "# El nombre $EXE_DIR se encuentra reservado\n"
+      if [ $UINPUT == $rname ]; then
+	echo -e "# El nombre $UINPUT se encuentra reservado\n"
 	VALID="N"
 	break
       fi
     done
     ## If name not reserved
     if [ $VALID == "Y" ]; then
-      DEF_EXE_DIR="/$EXE_DIR" 
+      DIRBIN="/$UINPUT" 
     fi
   else
     VALID="Y"
