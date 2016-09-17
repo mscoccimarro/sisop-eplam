@@ -1,2 +1,25 @@
 #!/bin/bash
+GRUPO=$(pwd)
+DEF_EXE_DIR="/bin"
+RESERVED="dirconf"
+VALID="N"
+clear
+echo -e "###\tInstalador del sistema EPLAM\t###\n"
+while [ $VALID == "N" ]; do
+  read -p "Defina el directorio de ejecutables ($GRUPO$DEF_EXE_DIR): " EXE_DIR
+  if [ ! -z "$EXE_DIR" -a "$EXE_DIR" != " " ]; then
+    VALID="Y"
+    for rname in $RESERVED; do
+      if [ $EXE_DIR == $rname ]; then
+	echo "El nombre $EXE_DIR se encuentra reservado"
+	VALID="N"
+	break
+      fi
+    done
+  else
+    echo "Un string vacio no es un directorio valido"
+  fi
+done
+VALID="N"
+
 
