@@ -8,7 +8,7 @@ else
 
   CMD=$1
   MSG=$2
-  DATE=$(date +"%d-%m-%Y")
+  DATE=$(date +"%d-%m-%Y %T")
   USER=$USER
   METADATA="$USER | $DATE |"
   # TYPE defaults to "INFO"
