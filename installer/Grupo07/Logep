@@ -3,13 +3,16 @@ if [ $# -lt 2 -o $# -gt 3 ]; then
   echo "Logep: Wrong number of parameters"
   exit 1
 else
-  # TODO: REMOVE WHEN IMPLEMENTED
-  LOGDIR=""
+  # Check if DIRLOG is set
+  if [ ! -v DIRLOG ]; then
+    echo "DIRLOG path is not set"
+    exit 1
+  fi
 
   LOG_MAX_SIZE=500
   LOG_LAST_LINES=5
   CMD=$1
-  LOG_FILE=$LOGDIR$CMD.log
+  LOG_FILE=$DIRLOG$CMD.log
   MSG=$2
   DATE=$(date +"%d-%m-%Y %T")
   TIMESTAMP=$(date +"%d-%m-%Y-%H-%M-%S")
@@ -29,10 +32,10 @@ else
 
   # Truncate log if it exceeds LOG_MAX_SIZE 
   if [ $LOG_SIZE -gt $LOG_MAX_SIZE ]; then 
-    BACK_FILE="$LOG_DIR$CMD-$TIMESTAMP.tar.gz" 
+    BACK_FILE="$DIRLOG$CMD-$TIMESTAMP.tar.gz" 
     tar -czf $BACK_FILE $LOG_FILE
     TMP_HASH=($(sha1sum $LOG_FILE))
-    TMP_FILE="$LOG_DIR$CMD-$TMP_HASH.tmp.log"
+    TMP_FILE="$DIRLOG$CMD-$TMP_HASH.tmp.log"
     cp $LOG_FILE $TMP_FILE 
     tail -n $LOG_LAST_LINES $TMP_FILE > $LOG_FILE 
     rm $TMP_FILE
