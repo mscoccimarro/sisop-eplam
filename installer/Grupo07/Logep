@@ -4,11 +4,15 @@ if [ $# -lt 2 -o $# -gt 3 ]; then
   exit 1
 else
   # TODO: REMOVE WHEN IMPLEMENTED
-  LOGDIR="."
+  LOGDIR=""
 
+  LOG_MAX_SIZE=500
+  LOG_LAST_LINES=5
   CMD=$1
+  LOG_FILE=$LOGDIR$CMD.log
   MSG=$2
   DATE=$(date +"%d-%m-%Y %T")
+  TIMESTAMP=$(date +"%d-%m-%Y-%H-%M-%S")
   USER=$USER
   METADATA="$USER | $DATE |"
   # TYPE defaults to "INFO"
@@ -17,7 +21,20 @@ else
     TYPE=$3
   fi
 
+  LOG_SIZE=0
+  # Get log size
+  if [ -f "$LOG_FILE" ]; then
+    LOG_SIZE=$(stat -c %s $LOG_FILE)
+  fi
+
+  # Truncate log if it exceeds LOG_MAX_SIZE 
+  if [ $LOG_SIZE -gt $LOG_MAX_SIZE ]; then 
+    tar -czf $CMD-$TIMESTAMP.tar.gz $LOG_FILE
+    tail -n $LOG_LAST_LINES $LOG_FILE > $LOG_FILE 
+    echo -e "###\tLog Excedido\t###" >> $LOG_FILE  
+  fi
+
   # Write log msg 
-  echo "$METADATA [$TYPE]: $MSG" >> $LOGDIR/$CMD.log
+  echo "$METADATA [$TYPE]: $MSG" >> $LOG_FILE 
 fi
 exit 0
