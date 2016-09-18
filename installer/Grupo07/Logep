@@ -1,0 +1,23 @@
+#!/bin/bash
+if [ $# -lt 2 -o $# -gt 3 ]; then
+  echo "Logep: Wrong number of parameters"
+  exit 1
+else
+  # TODO: REMOVE WHEN IMPLEMENTED
+  LOGDIR="."
+
+  CMD=$1
+  MSG=$2
+  DATE=$(date +"%d-%m-%Y")
+  USER=$USER
+  METADATA="$USER | $DATE |"
+  # TYPE defaults to "INFO"
+  TYPE="INFO"
+  if [ $# == 3 ]; then
+    TYPE=$3
+  fi
+
+  # Write log msg 
+  echo "$METADATA [$TYPE]: $MSG" >> $LOGDIR/$CMD.log
+fi
+exit 0
