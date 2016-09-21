@@ -1,7 +1,7 @@
 #!/bin/bash
 GRUPO=$(pwd)
-DIRCONF="/dirconf"
-CONF_FILE="$GRUPO$DIRCONF/Instalep.conf"
+DIRCONF="dirconf"
+CONF_FILE="$GRUPO/$DIRCONF/Instalep.conf"
 # Check if already installed
 if [ -f $CONF_FILE ]; then
   echo -e "###\tEl sistema EPLAM ya se encuentra instalado\t###\n"
@@ -25,6 +25,7 @@ update_reserved() {
 }
 
 request_dirpath() {
+  update_reserved
   local VALID="N"  
   while [ $VALID == "N" ]; do
     ## Prompt for exec directory
@@ -41,22 +42,31 @@ request_dirpath() {
       done
       ## If name not reserved
       if [ $VALID == "Y" ]; then
-	update_reserved
-        echo "/$UINPUT"
+        echo "$UINPUT"
       fi
     else
       VALID="Y"
+      echo "$2"
     fi
   done
 }
 
 update_reserved
+CONTINUE="N"
+while [ $CONTINUE != "S" ]; do
 clear
 echo -e "###\tInstalador del sistema EPLAM\t###\n"
 echo -e "- Para aceptar las opciones por default (), solamente presione enter.\n"
 echo -e "- Todos los directorios deben ser ingresados sin '/' al inicio ni al final ( Ej: midir/misubdir ).\n"
 echo -e "- El directorio ingresado sera relativo a: $GRUPO\n\n"
 ## Request exec directory
-DIRBIN=$(request_dirpath "Defina el directorio de ejecutables ($GRUPO/$DIRBIN): ")
+DIRBIN=$(request_dirpath "Defina el directorio de Ejecutables ($GRUPO/$DIRBIN): " $DIRBIN)
 ## Request file directory
-DIRMAE=$(request_dirpath "Defina el directorio de Maestros y Tablas ($GRUPO/$DIRMAE): ")
+DIRMAE=$(request_dirpath "Defina el directorio de Maestros y Tablas ($GRUPO/$DIRMAE): " $DIRMAE)
+
+echo -e "\nDirectorio de Configuracion: $GRUPO/$DIRCONF"
+echo -e "Directorio de Ejecutables: $GRUPO/$DIRBIN"
+echo -e "Directorio de Maestros y Tablas: $GRUPO/$DIRMAE"
+
+read -p "Desea continuar con la instalacion? ( S / N ): " CONTINUE
+done
