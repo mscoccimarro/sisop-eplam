@@ -4,6 +4,7 @@ DIRCONF="dirconf"
 CONF_FILE="$GRUPO/$DIRCONF/Instalep.conf"
 # Check if already installed
 if [ -f $CONF_FILE ]; then
+  clear
   echo -e "###\tEl sistema EPLAM ya se encuentra instalado\t###\n"
   exit 0
 fi
@@ -24,11 +25,12 @@ update_reserved() {
   RESERVED="$DIRBIN $DIRMAE $DIRREC $DIROK $DIRPROC $DIRINFO $DIRLOG $DIRNOK" 
 }
 
+# Requests directory path
 request_dirpath() {
   update_reserved
   local VALID="N"  
   while [ $VALID == "N" ]; do
-    ## Prompt for exec directory
+    ## Prompt for directory
     read -p "$1" UINPUT 
     ## Validate user input
     if [ ! -z "$UINPUT" -a "$UINPUT" != " " ]; then
@@ -51,7 +53,6 @@ request_dirpath() {
   done
 }
 
-update_reserved
 CONTINUE="N"
 while [ $CONTINUE != "S" ]; do
   clear
