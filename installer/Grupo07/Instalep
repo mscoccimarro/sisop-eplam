@@ -1,5 +1,12 @@
 #!/bin/bash
 GRUPO=$(pwd)
+DIRCONF="/dirconf"
+CONF_FILE="$GRUPO$DIRCONF/Instalep.conf"
+# Check if already installed
+if [ -f $CONF_FILE ]; then
+  echo -e "###\tEl sistema EPLAM ya se encuentra instalado\t###\n"
+  exit 0
+fi
 
 # Set directory default values
 DIRBIN="bin"
@@ -17,6 +24,32 @@ update_reserved() {
   RESERVED="$DIRBIN $DIRMAE $DIRREC $DIROK $DIRPROC $DIRINFO $DIRLOG $DIRNOK" 
 }
 
+request_dirpath() {
+  local VALID="N"  
+  while [ $VALID == "N" ]; do
+    ## Prompt for exec directory
+    read -p "$1" UINPUT 
+    ## Validate user input
+    if [ ! -z "$UINPUT" -a "$UINPUT" != " " ]; then
+      VALID="Y"
+      for rname in $RESERVED; do
+	if [ $UINPUT == $rname ]; then
+	  echo -e "\n# El nombre $UINPUT se encuentra reservado\n" >&2
+	  VALID="N"
+	  break
+	fi
+      done
+      ## If name not reserved
+      if [ $VALID == "Y" ]; then
+	update_reserved
+        echo "/$UINPUT"
+      fi
+    else
+      VALID="Y"
+    fi
+  done
+}
+
 update_reserved
 clear
 echo -e "###\tInstalador del sistema EPLAM\t###\n"
@@ -24,26 +57,6 @@ echo -e "- Para aceptar las opciones por default (), solamente presione enter.\n
 echo -e "- Todos los directorios deben ser ingresados sin '/' al inicio ni al final ( Ej: midir/misubdir ).\n"
 echo -e "- El directorio ingresado sera relativo a: $GRUPO\n\n"
 ## Request exec directory
-while [ $VALID == "N" ]; do
-  ## Prompt for exec directory
-  read -p "Defina el directorio de ejecutables ($GRUPO/$DIRBIN): " UINPUT 
-  ## Validate user input
-  if [ ! -z "$UINPUT" -a "$UINPUT" != " " ]; then
-    VALID="Y"
-    for rname in $RESERVED; do
-      if [ $UINPUT == $rname ]; then
-	echo -e "# El nombre $UINPUT se encuentra reservado\n"
-	VALID="N"
-	break
-      fi
-    done
-    ## If name not reserved
-    if [ $VALID == "Y" ]; then
-      DIRBIN="/$UINPUT" 
-      update_reserved
-    fi
-  else
-    VALID="Y"
-  fi
-done
-VALID="N"
+DIRBIN=$(request_dirpath "Defina el directorio de ejecutables ($GRUPO/$DIRBIN): ")
+## Request file directory
+DIRMAE=$(request_dirpath "Defina el directorio de Maestros y Tablas ($GRUPO/$DIRMAE): ")
