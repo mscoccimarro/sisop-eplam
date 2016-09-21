@@ -54,19 +54,24 @@ request_dirpath() {
 update_reserved
 CONTINUE="N"
 while [ $CONTINUE != "S" ]; do
-clear
-echo -e "###\tInstalador del sistema EPLAM\t###\n"
-echo -e "- Para aceptar las opciones por default (), solamente presione enter.\n"
-echo -e "- Todos los directorios deben ser ingresados sin '/' al inicio ni al final ( Ej: midir/misubdir ).\n"
-echo -e "- El directorio ingresado sera relativo a: $GRUPO\n\n"
-## Request exec directory
-DIRBIN=$(request_dirpath "Defina el directorio de Ejecutables ($GRUPO/$DIRBIN): " $DIRBIN)
-## Request file directory
-DIRMAE=$(request_dirpath "Defina el directorio de Maestros y Tablas ($GRUPO/$DIRMAE): " $DIRMAE)
+  clear
+  echo -e "###\tInstalador del sistema EPLAM\t###\n"
+  echo -e "- Para aceptar las opciones por default (), solamente presione enter.\n"
+  echo -e "- Todos los directorios deben ser ingresados sin '/' al inicio ni al final ( Ej: midir/misubdir ).\n"
+  echo -e "- El directorio ingresado sera relativo a: $GRUPO\n\n"
+  ## Request exec directory
+  DIRBIN=$(request_dirpath "Defina el directorio de Ejecutables ($GRUPO/$DIRBIN): " $DIRBIN)
+  ## Request file directory
+  DIRMAE=$(request_dirpath "Defina el directorio de Maestros y Tablas ($GRUPO/$DIRMAE): " $DIRMAE)
 
-echo -e "\nDirectorio de Configuracion: $GRUPO/$DIRCONF"
-echo -e "Directorio de Ejecutables: $GRUPO/$DIRBIN"
-echo -e "Directorio de Maestros y Tablas: $GRUPO/$DIRMAE"
+  echo -e "\nDirectorio de Configuracion: $GRUPO/$DIRCONF"
+  echo -e "Directorio de Ejecutables: $GRUPO/$DIRBIN"
+  echo -e "Directorio de Maestros y Tablas: $GRUPO/$DIRMAE"
+  echo -e "Estado de la instalacion: LISTA"
 
-read -p "Desea continuar con la instalacion? ( S / N ): " CONTINUE
+  read -p "Desea continuar con la instalacion? ( S / N ): " CONTINUE
+  ## Catch empty response as 'S'
+  if [ -z "$CONTINUE" -o "$CONTINUE" == " " ]; then
+    CONTINUE="S"
+  fi
 done
