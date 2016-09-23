@@ -1,2 +1,59 @@
 #!/bin/bash
 
+#Recibe un campo del config file como parámetro y devuelve el valor de ese campo
+#el archivo de configuracion debe ser de la forma
+#campo1 valor1
+#campo2 valor2
+#grep "GRUPO" dirconf/Instalep.conf | cut -f2 -d" "
+function get_var
+{
+	grep $1 $CONFIG_FILE | cut -f2 -d" "
+
+}
+
+CONFIG_FILE=$1 #guarda en una variable el archivo Instalep.conf recibido por parametro
+
+#Valida que se haya ingresado un parámetro
+if [ "$CONFIG_FILE" = "" ] 
+then
+	echo "Debe indicar por parámetro un archivo de configuracion"
+	exit 1
+
+#Valida que el archivo de configuracion tenga permiso de lectura
+elif ! test -r "$CONFIG_FILE" 
+then
+	echo "El archivo no puede ser leído"
+	exit 1
+fi
+
+#1: veo si ya fue iniciado el ambiente
+if [ "$ENVIRONMENT_ISSET" = "true" ]
+then
+	echo "Ambiente ya inicializado, para reiniciar termine la sesión e ingrese nuevamente"
+	#TODO: GUARDAR EN LOG
+	exit 1 #termina la ejecucion con 1 para indicar error
+else
+	echo "INICIAR"
+	export ENVIRONMENT_ISSET="true"
+
+fi
+
+#2: SETEAR LAS VARIABLES DE AMBIENTE
+
+GRUPO=$(get_var "GRUPO")
+DIRBIN=$(get_var "DIRBIN")
+DIRMAE=$(get_var "DIRMAE")
+DIRREC=$(get_var "DIRREC")
+DIROK=$(get_var "DIROK")
+DIRPROC=$(get_var "DIRPROC")
+DIRINFO=$(get_var "DIRINFO")
+DIRLOG=$(get_var "DIRLOG")
+
+
+#3: CHEQUEAR LOS PERMISOS
+#no sé a qué archivos se refiere pero se valida con test como figura en la línea 23
+#documentación útil: http://tldp.org/LDP/abs/html/fto.html
+
+exit 0
+
+
