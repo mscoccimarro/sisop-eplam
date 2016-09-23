@@ -1,0 +1,312 @@
+#!/bin/bash
+############Inicializacion la utilizo para probar, cuando se integre quitar################
+GRUPO="/home/user/Desktop/Grupo07"
+DIRBIN=$GRUPO"/BIN"
+DIRMAE=$GRUPO"/MAE"
+DIRREC=$GRUPO"/REC"
+DIROK=$GRUPO"/OK"
+DIRNOK=$GRUPO"/NOK"
+DIRPROC=$GRUPO"/PROC"
+DIRINFO=$GRUPO"/INFO"
+DIRLOG=$GRUPO"/LOG"
+LOGEP=$DIRBIN"/Logep"
+PROCEP=$DIRBIN"/Procep"
+MOVEP=$DIRBIN"/Movep"
+CENTROS=$DIRMAE"/centros.csv"
+PROVINCIAS=$DIRMAE"/provincias.csv"
+TRIMESTRES=$DIRMAE"/trimestres.csv"
+###########################################################################################
+
+variables_ambiente=(GRUPO DIRBIN DIRMAE DIRREC DIROK DIRPROC DIRINFO DIRLOG)
+directorios_necesarios=(DIRMAE DIRREC DIROK DIRNOK DIRLOG DIRBIN)
+directorios_lectura=(DIRMAE DIRREC)
+directorios_escritura=(DIROK DIRNOK DIRLOG)
+directorios_ejecucion=(DIRBIN)
+archivos_necesarios=(LOGEP PROCEP MOVEP CENTROS PROVINCIAS TRIMESTRES)
+archivos_lectura=(CENTROS PROVINCIAS TRIMESTRES)
+archivos_ejecucion=(LOGEP PROCEP MOVEP)
+sleep_segs=2
+comando="Demonep"
+
+function verificar_variables_ambiente(){
+  for elem in "${variables_ambiente[@]}"
+  do
+    if [ -z ${!elem} ]; then      
+      echo "ERROR: No existe la variable de ambiente: \"${elem}\"."
+      exit 1;
+    fi  
+  done
+}
+
+function verificar_existencia_directorios(){
+  for elem in "${directorios_necesarios[@]}"
+  do
+    if [ ! -d ${!elem} ]; then      
+      echo "ERROR: No existe el directorio: \"${!elem}\"."
+      exit 2;
+    fi  
+  done
+}
+
+function verificar_directorios_lectura(){
+  for elem in "${directorios_lectura[@]}"
+  do
+    if [ ! -r ${!elem} ]; then      
+      echo "ERROR: No existen permisos de lectura en directorio: \"${!elem}\"."
+      exit 3;
+    fi  
+  done
+}
+
+function verificar_directorios_escritura(){
+  for elem in "${directorios_escritura[@]}"
+  do
+    if [ ! -w ${!elem} ]; then      
+      echo "ERROR: No existen permisos de escritura en directorio: \"${!elem}\"."
+      exit 4;
+    fi  
+  done
+}
+
+function verificar_directorios_ejecucion(){
+  for elem in "${directorios_ejecucion[@]}"
+  do
+    if [ ! -x ${!elem} ]; then      
+      echo "ERROR: No existen permisos de ejecucion en directorio: \"${!elem}\"."
+      exit 5;
+    fi  
+  done
+}
+
+function verificar_existencia_archivos(){
+  for elem in "${archivos_necesarios[@]}"
+  do
+    if [ ! -e ${!elem} ]; then      
+      echo "ERROR: No existe el archivo: \"${!elem}\"."
+      exit 6;
+    fi  
+  done
+}
+
+function verificar_archivos_lectura(){
+  for elem in "${archivos_lectura[@]}"
+  do
+    if [ ! -r ${!elem} ]; then      
+      echo "ERROR: No se cuentan con permisos de lectura para el archivo: \"${!elem}\"."
+      exit 7;
+    fi  
+  done
+}
+
+function verificar_archivos_ejecucion(){
+  for elem in "${archivos_ejecucion[@]}"
+  do
+    if [ ! -x ${!elem} ]; then      
+      echo "ERROR: No se cuentan con permisos de ejecucion para el archivo: \"${!elem}\"."
+      exit 8;
+    fi  
+  done
+}
+
+function verificar_ambiente(){
+  verificar_variables_ambiente
+  verificar_existencia_directorios
+  verificar_directorios_lectura
+  verificar_directorios_escritura
+  verificar_directorios_ejecucion
+  verificar_existencia_archivos
+  verificar_archivos_lectura
+  verificar_archivos_ejecucion
+}
+
+function archivo_texto(){
+  if [[ $(file --mime-type "${1}" | grep -c "t*xt" -) > 0 ]];
+  then
+    return 1
+  fi
+  return 0
+}
+
+function archivo_vacio(){
+  if [ ! -s "$1" ]
+  then
+    return 1
+  fi
+  return 0
+}
+
+function archivo_formato_erroneo(){
+  if [[ $(echo "$1" | grep -c '^ejecutado_[0-9]\{4\}_[0-9]\{2\}_[0-9]\{8\}.csv$') != 1 ]];
+  then
+    return 1
+  fi
+  return 0
+}
+
+function anio(){
+  echo "$1" | cut -d'_' -f 2
+}
+
+function provincia(){
+  echo "$1" | cut -d'_' -f 3
+}
+
+function fecha(){
+  echo "$1" | cut -d '_' -f 4 | cut -d '.' -f 1 
+}
+
+function provincia_valida(){
+  let valor=$1
+  for elem in `cut -d',' -f 1 $PROVINCIAS`; do
+    if [ $valor == $elem ];
+    then
+      return 1
+    fi
+  done
+  return 0
+}
+
+function fecha_valida(){
+  let fecha_ahora=$(date +%Y%m%d);
+  let fecha_arch=$1
+  fecha_pres_str=$(head -n 1 $TRIMESTRES | cut -d ',' -f 3 )
+  let fecha_presupuestaria=$(date -d $fecha_pres_str +%Y%d%m)
+  if [ $fecha_ahora -gt $fecha_arch -a $fecha_presupuestaria -lt $fecha_arch ]; 
+  then
+    return 1
+  fi
+  return 0
+}
+
+function archivo_tipo_contenido_valido(){
+  archivo=$1
+  if [ "$archivo" != "" ]; 
+  then
+    #Punto 4 VERIFICAR QUE EL ARCHIVO SEA UN ARCHIVO COMÚN, DE TEXTO .
+    archivo_texto $archivo
+    if [ $? == 0 ]; 
+    then
+      #Logep $comando "Archivo rechazado, motivo: no es un archivo de texto"
+      echo "Archivo \"$archivo\" rechazado, motivo: no es un archivo de texto"
+      return 0
+    else
+      # Punto 5 VERIFICAR QUE EL ARCHIVO NO ESTÉ VACIO.
+      archivo_vacio $archivo
+      if [ $? == 1 ];
+      then
+	#Logep $comando "Archivo rechazado, motivo: archivo vacio"
+	echo "Archivo \"$archivo\" rechazado, motivo: archivo vacio"
+	return 0
+      else
+	return 1
+      fi
+    fi
+  fi    
+}
+
+function archivo_nombre_args_valido(){
+  archivo=$1
+  #Punto 6.VERIFICAR QUE EL FORMATO DEL NOMBRE DEL ARCHIVO SEA CORRECTO
+  archivo_formato_erroneo $archivo
+  if [ $? == 1 ];
+  then
+    #Logep $comando "Archivo rechazado, motivo: formato de nombre incorrecto."
+    echo "Archivo \"$archivo\" rechazado, motivo: formato de nombre incorrecto"
+    return 0
+  else
+    #Punto 7 - VERIFICAR AÑO
+    anio_archivo=$(anio $archivo)
+    anio=`date +'%Y'` 
+    if [ $anio != $anio_archivo ];
+    then
+      #Logep $comando "Archivo rechazado, motivo: año $anio_archivo incorrecto."
+      echo "Archivo rechazado, motivo: año $anio_archivo incorrecto."
+      return 0
+    else
+      #Punto 8.VERIFICAR PROVINCIA
+      prov_archivo=$(provincia $archivo)
+      provincia_valida $prov_archivo
+      if [ $? == 0 ];
+      then
+	#Logep $comando "Archivo rechazado, motivo: provincia $prov_archivo incorrecta."
+	echo "Archivo rechazado, motivo: provincia $prov_archivo incorrecta."
+	return 0
+      else
+	#Punto 9.VERIFICAR FECHA
+	fecha_archivo=$(fecha $archivo)
+	fecha_valida $fecha_archivo
+	if [ $? == 0 ];
+	then
+	  #Logep $comando "Archivo rechazado, motivo: fecha $fecha_archivo incorrecta."
+	  echo "Archivo rechazado, motivo: fecha $fecha_archivo incorrecta."
+	  return 0
+	else
+	  return 1
+	fi
+      fi
+    fi
+  fi
+}
+
+function ver_procep(){
+  if [ "$(ls -A $DIROK)" ]; then
+    if [[ $(pgrep -c "Procep") -gt 0 ]];
+    then
+      #Logep $comando "Invocación de Procep pospuesta para el siguiente ciclo"
+      echo "Se esta ejecutando Procep"
+    else
+      echo "NO se esta ejecutando Procep"
+      #cd $DIRBIN
+      #$(./Procep &)
+      #pid=$(pgrep "Procep" | head --lines=1)
+      #Logep $comando "Procep corriendo bajo el no.: $pid"
+    fi;
+  fi
+}
+
+function main(){
+  ubicacion=$PWD
+  cd $GRUPO
+  #Punto 1 OBLIGACIÓN DE INICIAR AMBIENTE ANTES DE EJECUTAR CUALQUIER COMANDO
+  verificar_ambiente
+  let contador_ciclos=1
+  #Punto 2 MANTENER UN CONTADOR DE CICLOS DE EJECUCIÓN DE DEMONEP .
+  while ( true );
+  do
+    #Logep $comando "Demonep ciclo nro. $contador_ciclos"
+    #Punto 3.CHEQUEAR SI HAY ARCHIVOS EN EL DIRECTORIO $GRUPO/DIRREC
+    cd $DIRREC
+    archivos_aceptados=0
+    for archivo in *
+    do
+      archivo_tipo_contenido_valido $archivo
+      if [ $? == 1 ];
+      then
+	archivo_nombre_args_valido $archivo
+	if [ $? == 1 ];
+	then
+	  #Punto 10.ACEPTAR LOS ARCHIVOS CON NOMBRE VÁLIDO.
+	  #Logep $comando "Archivo aceptado"
+	  echo "Archivo aceptado"
+	  echo "Mover a DIROK"
+	  #Movep $DIRREC/$archivo $DIROK/$archivo
+	else
+	  #Punto 11.RECHAZAR LOS ARCHIVOS INVÁLIDOS
+	  #Movep $DIRREC/$archivo $DIRNOK/$archivo
+	  echo "Mover a DIRNOK"
+	fi
+      else
+	#Movep $DIRREC/$archivo $DIRNOK/$archivo
+	echo "Mover a DIRNOK"
+      fi
+      #$LOGEP $comando "Archivo detectado: $archivo"
+    done  
+    ver_procep 
+    ((contador_ciclos++))
+    #Punto 14 DORMIR UN TIEMPO X Y EMPEZAR UN NUEVO CICLO
+    sleep $sleep_segs;
+    cd $ubicacion
+  done
+}
+
+main
