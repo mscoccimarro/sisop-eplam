@@ -259,9 +259,17 @@ function ver_procep(){
       #cd $DIRBIN
       #$(./Procep &)
       #pid=$(pgrep "Procep" | head --lines=1)
+      #echo $pid
       #Logep $comando "Procep corriendo bajo el no.: $pid"
     fi;
   fi
+}
+
+function mover(){
+  ubicacion=$PWD
+  cd $DIRBIN
+  #./Movep $1 $2
+  cd $ubicacion
 }
 
 function main(){
@@ -277,31 +285,33 @@ function main(){
     #Punto 3.CHEQUEAR SI HAY ARCHIVOS EN EL DIRECTORIO $GRUPO/DIRREC
     cd $DIRREC
     archivos_aceptados=0
-    for archivo in *
-    do
-      archivo_tipo_contenido_valido $archivo
-      if [ $? == 1 ];
-      then
-	archivo_nombre_args_valido $archivo
+    if [ "$(ls -A)" ]; then
+      for archivo in *
+      do
+	archivo_tipo_contenido_valido $archivo
 	if [ $? == 1 ];
 	then
-	  #Punto 10.ACEPTAR LOS ARCHIVOS CON NOMBRE VÁLIDO.
-	  #Logep $comando "Archivo aceptado"
-	  echo "Archivo aceptado"
-	  echo "Mover a DIROK"
-	  #Movep $DIRREC/$archivo $DIROK/$archivo
+	  archivo_nombre_args_valido $archivo
+	  if [ $? == 1 ];
+	  then
+	    #Punto 10.ACEPTAR LOS ARCHIVOS CON NOMBRE VÁLIDO.
+	    #Logep $comando "Archivo aceptado"
+	    echo "Archivo aceptado"
+	    echo "Mover a DIROK"
+	    mover $DIRREC/$archivo $DIROK
+	  else
+	    #Punto 11.RECHAZAR LOS ARCHIVOS INVÁLIDOS
+	    mover $DIRREC/$archivo $DIRNOK
+	    echo "Mover a DIRNOK"
+	  fi
 	else
-	  #Punto 11.RECHAZAR LOS ARCHIVOS INVÁLIDOS
-	  #Movep $DIRREC/$archivo $DIRNOK/$archivo
+	  mover $DIRREC/$archivo $DIRNOK
 	  echo "Mover a DIRNOK"
 	fi
-      else
-	#Movep $DIRREC/$archivo $DIRNOK/$archivo
-	echo "Mover a DIRNOK"
-      fi
-      #$LOGEP $comando "Archivo detectado: $archivo"
-    done  
-    ver_procep 
+	#$LOGEP $comando "Archivo detectado: $archivo"
+      done  
+      ver_procep
+    fi
     ((contador_ciclos++))
     #Punto 14 DORMIR UN TIEMPO X Y EMPEZAR UN NUEVO CICLO
     sleep $sleep_segs;
