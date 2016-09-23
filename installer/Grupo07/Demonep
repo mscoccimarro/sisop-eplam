@@ -186,7 +186,7 @@ function archivo_tipo_contenido_valido(){
     archivo_texto $archivo
     if [ $? == 0 ]; 
     then
-      #Logep $comando "Archivo rechazado, motivo: no es un archivo de texto"
+      log $comando "Archivo rechazado, motivo: no es un archivo de texto"
       echo "Archivo \"$archivo\" rechazado, motivo: no es un archivo de texto"
       return 0
     else
@@ -194,7 +194,7 @@ function archivo_tipo_contenido_valido(){
       archivo_vacio $archivo
       if [ $? == 1 ];
       then
-	#Logep $comando "Archivo rechazado, motivo: archivo vacio"
+	log $comando "Archivo rechazado, motivo: archivo vacio"
 	echo "Archivo \"$archivo\" rechazado, motivo: archivo vacio"
 	return 0
       else
@@ -210,7 +210,7 @@ function archivo_nombre_args_valido(){
   archivo_formato_erroneo $archivo
   if [ $? == 1 ];
   then
-    #Logep $comando "Archivo rechazado, motivo: formato de nombre incorrecto."
+    log $comando "Archivo rechazado, motivo: formato de nombre incorrecto."
     echo "Archivo \"$archivo\" rechazado, motivo: formato de nombre incorrecto"
     return 0
   else
@@ -219,7 +219,7 @@ function archivo_nombre_args_valido(){
     anio=`date +'%Y'` 
     if [ $anio != $anio_archivo ];
     then
-      #Logep $comando "Archivo rechazado, motivo: año $anio_archivo incorrecto."
+      log $comando "Archivo rechazado, motivo: año $anio_archivo incorrecto."
       echo "Archivo rechazado, motivo: año $anio_archivo incorrecto."
       return 0
     else
@@ -228,7 +228,7 @@ function archivo_nombre_args_valido(){
       provincia_valida $prov_archivo
       if [ $? == 0 ];
       then
-	#Logep $comando "Archivo rechazado, motivo: provincia $prov_archivo incorrecta."
+	log $comando "Archivo rechazado, motivo: provincia $prov_archivo incorrecta."
 	echo "Archivo rechazado, motivo: provincia $prov_archivo incorrecta."
 	return 0
       else
@@ -237,7 +237,7 @@ function archivo_nombre_args_valido(){
 	fecha_valida $fecha_archivo
 	if [ $? == 0 ];
 	then
-	  #Logep $comando "Archivo rechazado, motivo: fecha $fecha_archivo incorrecta."
+	  log $comando "Archivo rechazado, motivo: fecha $fecha_archivo incorrecta."
 	  echo "Archivo rechazado, motivo: fecha $fecha_archivo incorrecta."
 	  return 0
 	else
@@ -252,7 +252,7 @@ function ver_procep(){
   if [ "$(ls -A $DIROK)" ]; then
     if [[ $(pgrep -c "Procep") -gt 0 ]];
     then
-      #Logep $comando "Invocación de Procep pospuesta para el siguiente ciclo"
+      log $comando "Invocación de Procep pospuesta para el siguiente ciclo"
       echo "Se esta ejecutando Procep"
     else
       echo "NO se esta ejecutando Procep"
@@ -260,7 +260,7 @@ function ver_procep(){
       #$(./Procep &)
       #pid=$(pgrep "Procep" | head --lines=1)
       #echo $pid
-      #Logep $comando "Procep corriendo bajo el no.: $pid"
+      #log $comando "Procep corriendo bajo el no.: $pid"
     fi;
   fi
 }
@@ -269,6 +269,13 @@ function mover(){
   ubicacion=$PWD
   cd $DIRBIN
   #./Movep $1 $2
+  cd $ubicacion
+}
+
+function log(){
+  ubicacion=$PWD
+  cd $DIRBIN
+  #./Logep $1 "$2"
   cd $ubicacion
 }
 
@@ -281,7 +288,7 @@ function main(){
   #Punto 2 MANTENER UN CONTADOR DE CICLOS DE EJECUCIÓN DE DEMONEP .
   while ( true );
   do
-    #Logep $comando "Demonep ciclo nro. $contador_ciclos"
+    log $comando "Demonep ciclo nro. $contador_ciclos"
     #Punto 3.CHEQUEAR SI HAY ARCHIVOS EN EL DIRECTORIO $GRUPO/DIRREC
     cd $DIRREC
     archivos_aceptados=0
@@ -295,7 +302,7 @@ function main(){
 	  if [ $? == 1 ];
 	  then
 	    #Punto 10.ACEPTAR LOS ARCHIVOS CON NOMBRE VÁLIDO.
-	    #Logep $comando "Archivo aceptado"
+	    log $comando "Archivo aceptado"
 	    echo "Archivo aceptado"
 	    echo "Mover a DIROK"
 	    mover $DIRREC/$archivo $DIROK
@@ -308,7 +315,7 @@ function main(){
 	  mover $DIRREC/$archivo $DIRNOK
 	  echo "Mover a DIRNOK"
 	fi
-	#$LOGEP $comando "Archivo detectado: $archivo"
+	log $comando "Archivo detectado: $archivo"
       done  
       ver_procep
     fi
