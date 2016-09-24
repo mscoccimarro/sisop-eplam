@@ -64,6 +64,14 @@ create_dirs() {
   done
 }
 
+## Save configuration variables
+save_conf() {
+  for dir in $RESERVED; do
+    if [ $dir == "dirconf" ]; then continue; fi
+    echo $dir >> "$GRUPO/$DIRCONF/Instalep.conf"
+  done
+}
+
 end_install() {
   ## TODO: Save to log
   exit 0
@@ -150,3 +158,6 @@ done
   
   ## Create directories
   create_dirs
+
+  ## Save config. variables
+  save_conf
