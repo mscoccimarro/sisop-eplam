@@ -8,3 +8,4 @@ Asumimos que no se van a pisar los campos (el regex se expandería hasta encontr
 #3: CHEQUEAR LOS PERMISOS
 La consigna no aclara de qué archivos, asumo que son los 3 .csv nombrados al final del tp.
 Archivos DIRMAE/centros.csv, provincias.csv y trimestres.csv
+

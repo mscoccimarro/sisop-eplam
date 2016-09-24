@@ -1,0 +1,49 @@
+#!/bin/bash
+if [ $# -lt 2 -o $# -gt 3 ]; then
+  echo "Logep: Wrong number of parameters"
+  exit 1
+else
+  # Check if DIRLOG is set
+  if [ ! -v DIRLOG ]; then
+    echo "DIRLOG path is not set"
+    exit 1
+  fi
+
+  LOG_MAX_SIZE=1500
+  LOG_LAST_LINES=5
+  CMD=$1
+  LOG_FILE=$DIRLOG$CMD.log
+  #echo $LOG_FILE
+  MSG=$2
+  DATE=$(date +"%d-%m-%Y %T")
+  TIMESTAMP=$(date +"%d-%m-%Y-%H-%M-%S")
+  USER=$USER
+  METADATA="$USER | $DATE |"
+  # TYPE defaults to "INFO"
+  TYPE="INFO"
+  if [ $# == 3 ]; then
+    TYPE=$3
+  fi
+
+  LOG_SIZE=0
+  # Get log size
+  if [ -f "$LOG_FILE" ]; then
+    LOG_SIZE=$(stat -c %s $LOG_FILE)
+  fi
+
+  # Truncate log if it exceeds LOG_MAX_SIZE 
+  if [ $LOG_SIZE -gt $LOG_MAX_SIZE ]; then 
+    BACK_FILE="$DIRLOG$CMD-$TIMESTAMP.tar.gz" 
+    tar -czf $BACK_FILE $LOG_FILE
+    TMP_HASH=($(sha1sum $LOG_FILE))
+    TMP_FILE="$DIRLOG$CMD-$TMP_HASH.tmp.log"
+    cp $LOG_FILE $TMP_FILE 
+    tail -n $LOG_LAST_LINES $TMP_FILE > $LOG_FILE 
+    rm $TMP_FILE
+    echo -e "###\tLog Excedido\t###" >> $LOG_FILE  
+  fi
+
+  # Write log msg 
+  echo "$METADATA [$TYPE]: $MSG" >> $LOG_FILE 
+fi
+exit 0
