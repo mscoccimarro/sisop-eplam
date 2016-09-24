@@ -64,10 +64,28 @@ while [ $CONTINUE != "S" ]; do
   DIRBIN=$(request_dirpath "Defina el directorio de Ejecutables ($GRUPO/$DIRBIN): " $DIRBIN)
   ## Request file directory
   DIRMAE=$(request_dirpath "Defina el directorio de Maestros y Tablas ($GRUPO/$DIRMAE): " $DIRMAE)
+  ## Request updates directory
+  DIRREC=$(request_dirpath "Defina el directorio de Recepcion de Novedades ($GRUPO/$DIRREC): " $DIRREC)
+  ## Request accepted files directory
+  DIROK=$(request_dirpath "Defina el directorio de Archivos Aceptados ($GRUPO/$DIROK): " $DIROK)
+  ## Request processed files directory
+  DIRPROC=$(request_dirpath "Defina el directorio de Archivos Procesados ($GRUPO/$DIRPROC): " $DIRPROC)
+  ## Request reports directory
+  DIRINFO=$(request_dirpath "Defina el directorio de Reportes ($GRUPO/$DIRINFO): " $DIRINFO)
+  ## Request log directory
+  DIRLOG=$(request_dirpath "Defina el directorio de log ($GRUPO/$DIRLOG): " $DIRLOG)
+  ## Request rejected directory
+  DIRNOK=$(request_dirpath "Defina el directorio de rechazados ($GRUPO/$DIRNOK): " $DIRNOK)
 
   echo -e "\nDirectorio de Configuracion: $GRUPO/$DIRCONF"
   echo -e "Directorio de Ejecutables: $GRUPO/$DIRBIN"
   echo -e "Directorio de Maestros y Tablas: $GRUPO/$DIRMAE"
+  echo -e "Directorio de Recepcion de Novedades: $GRUPO/$DIRREC"
+  echo -e "Directorio de Archivos Aceptados: $GRUPO/$DIROK"
+  echo -e "Directorio de Archivos Procesados: $GRUPO/$DIRPROC"
+  echo -e "Directorio de Archivos de Reportes: $GRUPO/$DIRINFO"
+  echo -e "Directorio de Archivos de Log: $GRUPO/$DIRLOG"
+  echo -e "Directorio de Archivos de Rechazados: $GRUPO/$DIRNOK"
   echo -e "Estado de la instalacion: LISTA"
 
   read -p "Desea continuar con la instalacion? ( S / N ): " CONTINUE
