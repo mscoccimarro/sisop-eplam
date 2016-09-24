@@ -22,7 +22,7 @@ VALID="N"
 
 # Updates reserved values list
 update_reserved() {
-  RESERVED="$DIRBIN $DIRMAE $DIRREC $DIROK $DIRPROC $DIRINFO $DIRLOG $DIRNOK" 
+  RESERVED="$DIRCONF $DIRBIN $DIRMAE $DIRREC $DIROK $DIRPROC $DIRINFO $DIRLOG $DIRNOK" 
 }
 
 # Requests directory path
@@ -77,6 +77,32 @@ while [ $CONTINUE != "S" ]; do
   ## Request rejected directory
   DIRNOK=$(request_dirpath "Defina el directorio de rechazados ($GRUPO/$DIRNOK): " $DIRNOK)
 
+  ## Request minimum free space required
+  VALID="N"
+  while [ $VALID != "S" ]; do
+    DATASIZE=100
+    echo -e "\n"
+    read -p "Defina espacio minimo libre para la recepcion de archivos en Mbytes ($DATASIZE): " DATASIZE
+
+    ## Check available size
+    AVAILABLE_SIZE=$(df -m --output='avail' . | tail -n 1)
+
+    if [ $AVAILABLE_SIZE -lt $DATASIZE ]; then
+      echo -e "Insuficiente espacio en disco." 
+      echo -e "Espacio disponible: $AVAILABLE_SIZE Mb."
+      echo -e "Espacio requerido: $DATASIZE Mb."
+      read -p "Intentelo nuevamente." DUMMY_VAR
+    else
+      VALID="S"
+      echo -e "Suficiente espacio en disco."
+      echo -e "Espacio disponible: $AVAILABLE_SIZE Mb."
+      echo -e "Espacio requerido: $DATASIZE Mb."
+      read -p "De enter para continuar." DUMMY_VAR
+    fi
+  done
+
+  clear
+  ## Show configured directories
   echo -e "\nDirectorio de Configuracion: $GRUPO/$DIRCONF"
   echo -e "Directorio de Ejecutables: $GRUPO/$DIRBIN"
   echo -e "Directorio de Maestros y Tablas: $GRUPO/$DIRMAE"
