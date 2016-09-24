@@ -1,0 +1,10 @@
+Sobre le método get_var y la lectura del archivo Instalep.conf
+#Recibe un campo del config file como parámetro y devuelve el valor de ese campo
+#el archivo de configuracion debe ser de la forma
+#campo1=valor1=campo2=valor2
+
+Asumimos que no se van a pisar los campos (el regex se expandería hasta encontrar la segunda aparición)
+
+#3: CHEQUEAR LOS PERMISOS
+La consigna no aclara de qué archivos, asumo que son los 3 .csv nombrados al final del tp.
+Archivos DIRMAE/centros.csv, provincias.csv y trimestres.csv
