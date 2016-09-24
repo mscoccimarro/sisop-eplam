@@ -53,6 +53,22 @@ request_dirpath() {
   done
 }
 
+## Create dir paths
+create_dirs() {
+  update_reserved
+  echo -e "\nCreando Estructuras de directorio . . . .\n"
+  for dir in $RESERVED; do
+    if [ ! -d "$GRUPO/$dir" ]; then
+      mkdir "$GRUPO/$dir"  
+    fi
+  done
+}
+
+end_install() {
+  ## TODO: Save to log
+  exit 0
+}
+
 CONTINUE="N"
 while [ $CONTINUE != "S" ]; do
   clear
@@ -114,9 +130,23 @@ while [ $CONTINUE != "S" ]; do
   echo -e "Directorio de Archivos de Rechazados: $GRUPO/$DIRNOK"
   echo -e "Estado de la instalacion: LISTA"
 
+  echo -e "\n"
   read -p "Desea continuar con la instalacion? ( S / N ): " CONTINUE
   ## Catch empty response as 'S'
   if [ -z "$CONTINUE" -o "$CONTINUE" == " " ]; then
     CONTINUE="S"
   fi
 done
+
+  read -p "Iniciando Instalacion. Esta Ud. seguro? ( S / N ): " CONTINUE
+  ## Catch empty response as 'S'
+  if [ -z "$CONTINUE" -o "$CONTINUE" == " " ]; then
+    CONTINUE="S"
+  fi
+
+  if [ $CONTINUE != "S" ]; then
+    end_install
+  fi
+  
+  ## Create directories
+  create_dirs
