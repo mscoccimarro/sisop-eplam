@@ -66,10 +66,16 @@ create_dirs() {
 
 ## Save configuration variables
 save_conf() {
-  for dir in $RESERVED; do
-    if [ $dir == "dirconf" ]; then continue; fi
-    echo $dir >> "$GRUPO/$DIRCONF/Instalep.conf"
-  done
+  CONF_FILE="$GRUPO/$DIRCONF/Instalep.conf" 
+  echo "GRUPO $GRUPO" >> $CONF_FILE 
+  echo "DIRBIN $DIRBIN" >> $CONF_FILE 
+  echo "DIRMAE $DIRMAE" >> $CONF_FILE 
+  echo "DIRREC $DIRREC" >> $CONF_FILE 
+  echo "DIROK $DIROK" >> $CONF_FILE 
+  echo "DIRPROC $DIRPROC" >> $CONF_FILE 
+  echo "DIRINFO $DIRINFO" >> $CONF_FILE 
+  echo "DIRLOG $DIRLOG" >> $CONF_FILE 
+  echo "DIRNOK $DIRNOK" >> $CONF_FILE 
 }
 
 end_install() {
