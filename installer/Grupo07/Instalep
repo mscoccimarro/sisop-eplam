@@ -28,10 +28,30 @@ show_dirs() {
   echo -e "Directorio de Archivos de Rechazados: $GRUPO/$DIRNOK"
 } >&2
 
+
+## Get parameter conf. value
+load_conf_var() {
+  echo $(grep -i $1 $CONF_FILE | cut -f 2 -d ' ')
+}
+
+## Load install conf. file
+load_conf() {
+  GRUPO=$(load_conf_var GRUPO)
+  DIRBIN=$(load_conf_var DIRBIN)
+  DIRMAE=$(load_conf_var DIRMAE)
+  DIRREC=$(load_conf_var DIRREC)
+  DIROK=$(load_conf_var DIROK)
+  DIRPROC=$(load_conf_var DIRPROC)
+  DIRINFO=$(load_conf_var DIRINFO)
+  DIRLOG=$(load_conf_var DIRLOG)
+  DIRNOK=$(load_conf_var DIRNOK)
+}
+
 # Check if already installed
 if [ -f $CONF_FILE ]; then
   clear
   echo -e "###\tEl sistema EPLAM ya se encuentra instalado\t###\n"
+  load_conf
   show_dirs -l
   exit 0
 fi
