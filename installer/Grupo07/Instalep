@@ -2,10 +2,37 @@
 GRUPO=$(pwd)
 DIRCONF="dirconf"
 CONF_FILE="$GRUPO/$DIRCONF/Instalep.conf"
+
+## List files given path
+list_path() {
+  echo " _"
+  for lfile in $(ls $1); do
+    echo "| - $lfile"
+  done
+  echo -e ""
+} >&2
+
+## Show dir paths
+show_dirs() {
+  echo -e "\nDirectorio de Configuracion: $GRUPO/$DIRCONF"
+  if [ "$1" == "-l" ]; then list_path "$GRUPO/$DIRCONF"; fi
+  echo -e "Directorio de Ejecutables: $GRUPO/$DIRBIN"
+  if [ "$1" == "-l" ]; then list_path "$GRUPO/$DIRBIN"; fi
+  echo -e "Directorio de Maestros y Tablas: $GRUPO/$DIRMAE"
+  if [ "$1" == "-l" ]; then list_path "$GRUPO/$DIRMAE"; fi
+  echo -e "Directorio de Recepcion de Novedades: $GRUPO/$DIRREC"
+  echo -e "Directorio de Archivos Aceptados: $GRUPO/$DIROK"
+  echo -e "Directorio de Archivos Procesados: $GRUPO/$DIRPROC"
+  echo -e "Directorio de Archivos de Reportes: $GRUPO/$DIRINFO"
+  echo -e "Directorio de Archivos de Log: $GRUPO/$DIRLOG"
+  echo -e "Directorio de Archivos de Rechazados: $GRUPO/$DIRNOK"
+} >&2
+
 # Check if already installed
 if [ -f $CONF_FILE ]; then
   clear
   echo -e "###\tEl sistema EPLAM ya se encuentra instalado\t###\n"
+  show_dirs -l
   exit 0
 fi
 
@@ -66,7 +93,6 @@ create_dirs() {
 
 ## Save configuration variables
 save_conf() {
-  CONF_FILE="$GRUPO/$DIRCONF/Instalep.conf" 
   echo "GRUPO $GRUPO" >> $CONF_FILE 
   echo "DIRBIN $DIRBIN" >> $CONF_FILE 
   echo "DIRMAE $DIRMAE" >> $CONF_FILE 
@@ -111,7 +137,7 @@ while [ $CONTINUE != "S" ]; do
   VALID="N"
   while [ $VALID != "S" ]; do
     DATASIZE=100
-    echo -e "\n"
+    echo -e ""
     read -p "Defina espacio minimo libre para la recepcion de archivos en Mbytes ($DATASIZE): " DATASIZE
 
     ## Check available size
@@ -133,15 +159,7 @@ while [ $CONTINUE != "S" ]; do
 
   clear
   ## Show configured directories
-  echo -e "\nDirectorio de Configuracion: $GRUPO/$DIRCONF"
-  echo -e "Directorio de Ejecutables: $GRUPO/$DIRBIN"
-  echo -e "Directorio de Maestros y Tablas: $GRUPO/$DIRMAE"
-  echo -e "Directorio de Recepcion de Novedades: $GRUPO/$DIRREC"
-  echo -e "Directorio de Archivos Aceptados: $GRUPO/$DIROK"
-  echo -e "Directorio de Archivos Procesados: $GRUPO/$DIRPROC"
-  echo -e "Directorio de Archivos de Reportes: $GRUPO/$DIRINFO"
-  echo -e "Directorio de Archivos de Log: $GRUPO/$DIRLOG"
-  echo -e "Directorio de Archivos de Rechazados: $GRUPO/$DIRNOK"
+  show_dirs
   echo -e "Estado de la instalacion: LISTA"
 
   echo -e "\n"
@@ -158,6 +176,7 @@ done
     CONTINUE="S"
   fi
 
+  ## Interrupt install
   if [ $CONTINUE != "S" ]; then
     end_install
   fi
