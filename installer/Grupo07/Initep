@@ -20,7 +20,7 @@ isset_var() {
 	if [ -z "$1" ] 
 	then 
 		echo "No se puede inicializar la variable $2" 
-		exit 1
+		return 1
 	fi
 }
 
@@ -29,7 +29,7 @@ validateSetReadeable() {
 	if [ "$1" != "0" ] 
 	then
 		logMsg "ERROR: no se puede asignarle permiso de escritura a $2"	
-		exit 1
+		return 1
 	fi
 }
 
@@ -54,8 +54,18 @@ logMsg() {
 }
 
 iniciar_daemonep() {
-	$DIRBIN/Demonep
+	$DIRBIN/Demonep &
+	pid=$(pgrep -x -n "Demonep")
+	logMsg "Demonep corriendo bajo el no.: $pid"
+	echo "Para detener el proceso puede ejecutar el comando Stop_Daemon Demonep"
 }
+
+show_start_daemonep()
+{
+	echo "Puede iniciar Demonep más adelante ejecutando ./Demonep"
+}
+
+
 
 
 #**************** COMIENZO DEL SCRIPT ****************#
@@ -70,13 +80,13 @@ CONFIG_FILE=$1 #guarda en una variable el archivo Instalep.conf recibido por par
 if [ "$CONFIG_FILE" = "" ] 
 then
 	echo "Debe indicar por parámetro un archivo de configuracion"
-	exit 1
+	return 1
 
 #Valida que el archivo de configuracion tenga permiso de lectura
 elif ! test -r "$CONFIG_FILE" 
 then
 	echo "El archivo no puede ser leído"
-	exit 1
+	return 1
 fi
 
 
@@ -84,7 +94,7 @@ fi
 if [ "$ENVIRONMENT_ISSET" = "true" ]
 then
 	logMsg "Ambiente ya inicializado, para reiniciar termine la sesión e ingrese nuevamente"
-	exit 1 #termina la ejecucion con 1 para indicar error
+	return 1 #termina la ejecucion con 1 para indicar error
 else
 	export ENVIRONMENT_ISSET="true"
 fi
@@ -100,21 +110,32 @@ export DIRPROC=$(get_var "DIRPROC")
 export DIRINFO=$(get_var "DIRINFO")
 export DIRLOG=$(get_var "DIRLOG")
 
-isset_var "$GRUPO" "GRUPO"
-isset_var "$DIRBIN" "DIRBIN"
-isset_var "$DIRMAE" "DIRMAE"
-isset_var "$DIRREC" "DIRREC"
-isset_var "$DIROK" "DIROK"
-isset_var "$DIRPROC" "DIRPROC"
-isset_var "$DIRINFO" "DIRINFO"
-isset_var "$DIRLOG" "DIRLOG"
+
+isset_var "$GRUPO" "GRUPO" || return 1
+isset_var "$DIRBIN" "DIRBIN" || return 1
+isset_var "$DIRMAE" "DIRMAE" || return 1
+isset_var "$DIRREC" "DIRREC" || return 1
+isset_var "$DIROK" "DIROK" || return 1
+isset_var "$DIRPROC" "DIRPROC" || return 1
+isset_var "$DIRINFO" "DIRINFO" || return 1
+isset_var "$DIRLOG" "DIRLOG" || return 1
+
+
+DIRBIN=$GRUPO$DIRBIN
+DIRMAE=$GRUPO$DIRMAE
+DIRREC=$GRUPO$DIRREC
+DIROK=$GRUPO$DIROK
+DIRPROC=$GRUPO$DIRPROC
+DIRINFO=$GRUPO$DIRINFO
+DIRLOG=$GRUPO$DIRLOG
 
 
 #3: CHEQUEAR LOS PERMISOS
 #Archivos DIRMAE/centros.csv, provincias.csv y trimestres.csv
-setReadeable "DIRMAE/centros.csv" "centros.csv"
-#setReadeable "DIRMAE/provincias.csv" "provincias.csv"
-#setReadeable "DIRMAE/trimestres.csv" "trimestres.csv"
+setReadeable "DIRMAE/centros.csv" "centros.csv" || return 1
+setReadeable "DIRMAE/provincias.csv" "provincias.csv" || return 1
+setReadeable "DIRMAE/trimestres.csv" "trimestres.csv" || return 1
+
 
 MSG="¿Desea efectuar la activacion de Demonep? s/n"
 logMsg "$MSG"
@@ -129,5 +150,4 @@ else
 	logMsg "$MSG"
 fi
 
-exit $?
 
