@@ -25,7 +25,7 @@ directorios_ejecucion=(DIRBIN)
 archivos_necesarios=(LOGEP PROCEP MOVEP CENTROS PROVINCIAS TRIMESTRES)
 archivos_lectura=(CENTROS PROVINCIAS TRIMESTRES)
 archivos_ejecucion=(LOGEP PROCEP MOVEP)
-sleep_segs=2
+sleep_segs=240
 comando="Demonep"
 
 function verificar_variables_ambiente(){
@@ -256,13 +256,18 @@ function ver_procep(){
       echo "Se esta ejecutando Procep"
     else
       echo "NO se esta ejecutando Procep"
-      #cd $DIRBIN
-      #$(./Procep &)
-      #pid=$(pgrep "Procep" | head --lines=1)
-      #echo $pid
-      #log $comando "Procep corriendo bajo el no.: $pid"
+      procep
     fi;
   fi
+}
+
+function procep(){
+  ubicacion=$PWD
+  cd $DIRBIN
+  #$(./Procep &)
+  #pid=$(pgrep "Procep" | head --lines=1)
+  #log $comando "Procep corriendo bajo el no.: $pid"
+  cd $ubicacion    
 }
 
 function mover(){
