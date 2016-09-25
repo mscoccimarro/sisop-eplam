@@ -187,7 +187,6 @@ function archivo_tipo_contenido_valido(){
     if [ $? == 0 ]; 
     then
       log $comando "Archivo rechazado, motivo: no es un archivo de texto"
-      echo "Archivo \"$archivo\" rechazado, motivo: no es un archivo de texto"
       return 0
     else
       # Punto 5 VERIFICAR QUE EL ARCHIVO NO ESTÉ VACIO.
@@ -195,7 +194,6 @@ function archivo_tipo_contenido_valido(){
       if [ $? == 1 ];
       then
 	log $comando "Archivo rechazado, motivo: archivo vacio"
-	echo "Archivo \"$archivo\" rechazado, motivo: archivo vacio"
 	return 0
       else
 	return 1
@@ -211,7 +209,6 @@ function archivo_nombre_args_valido(){
   if [ $? == 1 ];
   then
     log $comando "Archivo rechazado, motivo: formato de nombre incorrecto."
-    echo "Archivo \"$archivo\" rechazado, motivo: formato de nombre incorrecto"
     return 0
   else
     #Punto 7 - VERIFICAR AÑO
@@ -220,7 +217,6 @@ function archivo_nombre_args_valido(){
     if [ $anio != $anio_archivo ];
     then
       log $comando "Archivo rechazado, motivo: año $anio_archivo incorrecto."
-      echo "Archivo rechazado, motivo: año $anio_archivo incorrecto."
       return 0
     else
       #Punto 8.VERIFICAR PROVINCIA
@@ -229,7 +225,6 @@ function archivo_nombre_args_valido(){
       if [ $? == 0 ];
       then
 	log $comando "Archivo rechazado, motivo: provincia $prov_archivo incorrecta."
-	echo "Archivo rechazado, motivo: provincia $prov_archivo incorrecta."
 	return 0
       else
 	#Punto 9.VERIFICAR FECHA
@@ -238,7 +233,6 @@ function archivo_nombre_args_valido(){
 	if [ $? == 0 ];
 	then
 	  log $comando "Archivo rechazado, motivo: fecha $fecha_archivo incorrecta."
-	  echo "Archivo rechazado, motivo: fecha $fecha_archivo incorrecta."
 	  return 0
 	else
 	  return 1
@@ -253,9 +247,7 @@ function ver_procep(){
     if [[ $(pgrep -c "Procep") -gt 0 ]];
     then
       log $comando "Invocación de Procep pospuesta para el siguiente ciclo"
-      echo "Se esta ejecutando Procep"
     else
-      echo "NO se esta ejecutando Procep"
       procep
     fi;
   fi
@@ -308,17 +300,13 @@ function main(){
 	  then
 	    #Punto 10.ACEPTAR LOS ARCHIVOS CON NOMBRE VÁLIDO.
 	    log $comando "Archivo aceptado"
-	    echo "Archivo aceptado"
-	    echo "Mover a DIROK"
 	    mover $DIRREC/$archivo $DIROK
 	  else
 	    #Punto 11.RECHAZAR LOS ARCHIVOS INVÁLIDOS
 	    mover $DIRREC/$archivo $DIRNOK
-	    echo "Mover a DIRNOK"
 	  fi
 	else
 	  mover $DIRREC/$archivo $DIRNOK
-	  echo "Mover a DIRNOK"
 	fi
 	log $comando "Archivo detectado: $archivo"
       done  
