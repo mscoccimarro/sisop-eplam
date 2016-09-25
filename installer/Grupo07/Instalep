@@ -41,7 +41,7 @@ show_dirs() {
 
 ## Get parameter conf. value
 load_conf_var() {
-  echo $(grep -i $1 $CONF_FILE | cut -f 2 -d ' ')
+  echo $(grep -i $1 $CONF_FILE | cut -f 2 -d '=')
 }
 
 ## Load install conf. file
@@ -128,15 +128,16 @@ create_dirs() {
 ## Save configuration variables
 save_conf() {
   echolog -p "Actualizando la configuracion del sistema\n"
-  echo "GRUPO $GRUPO" >> $CONF_FILE 
-  echo "DIRBIN $DIRBIN" >> $CONF_FILE 
-  echo "DIRMAE $DIRMAE" >> $CONF_FILE 
-  echo "DIRREC $DIRREC" >> $CONF_FILE 
-  echo "DIROK $DIROK" >> $CONF_FILE 
-  echo "DIRPROC $DIRPROC" >> $CONF_FILE 
-  echo "DIRINFO $DIRINFO" >> $CONF_FILE 
-  echo "DIRLOG $DIRLOG" >> $CONF_FILE 
-  echo "DIRNOK $DIRNOK" >> $CONF_FILE 
+  USER_META="$USER=$(date +"%d-%m-%Y %T")"
+  echo "GRUPO=$GRUPO=$USER_META" >> $CONF_FILE 
+  echo "DIRBIN=$DIRBIN=$USER_META" >> $CONF_FILE 
+  echo "DIRMAE=$DIRMAE=$USER_META" >> $CONF_FILE 
+  echo "DIRREC=$DIRREC=$USER_META" >> $CONF_FILE 
+  echo "DIROK=$DIROK=$USER_META" >> $CONF_FILE 
+  echo "DIRPROC=$DIRPROC=$USER_META" >> $CONF_FILE 
+  echo "DIRINFO=$DIRINFO=$USER_META" >> $CONF_FILE 
+  echo "DIRLOG=$DIRLOG=$USER_META" >> $CONF_FILE 
+  echo "DIRNOK=$DIRNOK=$USER_META" >> $CONF_FILE 
   echolog -p "Instalacion CONCLUIDA.\n"
 }
 
