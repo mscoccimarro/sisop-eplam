@@ -142,7 +142,7 @@ save_conf() {
 }
 
 end_install() {
-  ## TODO: Save to log
+  echolog "Fin del Proceso. $USER $(date +"%d-%m-%Y %T")"
   exit 0
 }
 
@@ -229,3 +229,5 @@ done
 
   ## Save config. variables
   save_conf
+
+  end_install
