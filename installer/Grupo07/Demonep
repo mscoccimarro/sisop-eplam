@@ -265,7 +265,7 @@ function procep(){
 function mover(){
   ubicacion=$PWD
   cd $DIRBIN
-  ./Movep $1 $2
+  #./Movep $1 $2
   cd $ubicacion
 }
 
