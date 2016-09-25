@@ -157,7 +157,7 @@ function fecha(){
 
 function provincia_valida(){
   let valor=$1
-  for elem in `cut -d',' -f 1 $PROVINCIAS`; do
+  for elem in `cut -d';' -f 1 $PROVINCIAS`; do
     if [ $valor == $elem ];
     then
       return 1
@@ -169,7 +169,7 @@ function provincia_valida(){
 function fecha_valida(){
   let fecha_ahora=$(date +%Y%m%d);
   let fecha_arch=$1
-  fecha_pres_str=$(head -n 1 $TRIMESTRES | cut -d ',' -f 3 )
+  fecha_pres_str=$(head -n 2 $TRIMESTRES | tail -1 | cut -d ';' -f 3 )
   let fecha_presupuestaria=$(date -d $fecha_pres_str +%Y%d%m)
   if [ $fecha_ahora -gt $fecha_arch -a $fecha_presupuestaria -lt $fecha_arch ]; 
   then
@@ -265,7 +265,7 @@ function procep(){
 function mover(){
   ubicacion=$PWD
   cd $DIRBIN
-  #./Movep $1 $2
+  ./Movep $1 $2
   cd $ubicacion
 }
 
