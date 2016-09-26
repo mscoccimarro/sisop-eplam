@@ -95,8 +95,8 @@ if [ "$ENVIRONMENT_ISSET" = "true" ]
 then
 	logMsg "Ambiente ya inicializado, para reiniciar termine la sesión e ingrese nuevamente"
 	return 1 #termina la ejecucion con 1 para indicar error
-else
-	export ENVIRONMENT_ISSET="true"
+#else
+	#export ENVIRONMENT_ISSET="true"
 fi
 
 
@@ -141,13 +141,15 @@ files_are_readable () {
   done
 }
 
-files_are_readable $DIRMAE/* || return 1
 
 #3: CHEQUEAR LOS PERMISOS
-#Archivos DIRMAE/centros.csv, provincias.csv y trimestres.csv
-#setReadeable "DIRMAE/centros.csv" "centros.csv" || return 1
-#setReadeable "DIRMAE/provincias.csv" "provincias.csv" || return 1
-#setReadeable "DIRMAE/trimestres.csv" "trimestres.csv" || return 1
+files_are_readable $DIRMAE/* || return 1
+
+
+
+export ENVIRONMENT_ISSET="true"
+MSG="El sistema se ha iniciado correctamente."
+logMsg "$MSG"
 
 
 MSG="¿Desea efectuar la activacion de Demonep? s/n"

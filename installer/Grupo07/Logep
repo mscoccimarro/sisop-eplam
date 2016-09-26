@@ -12,7 +12,7 @@ else
   LOG_MAX_SIZE=10000
   LOG_LAST_LINES=5
   CMD=$1
-  LOG_FILE=$DIRLOG$CMD.log
+  LOG_FILE=$DIRLOG/$CMD.log
   MSG=$2
   DATE=$(date +"%d-%m-%Y %T")
   TIMESTAMP=$(date +"%d-%m-%Y-%H-%M-%S")
