@@ -50,11 +50,11 @@ setReadeable() {
 logMsg() {
 	echo "$1"
 	#echo "¿Desea efectuar la activacion de Demonep? s/n"
-	$DIRBIN/Logep "$COMMAND" "$1"
+	$GRUPO/Logep "$COMMAND" "$1"
 }
 
 iniciar_daemonep() {
-	$DIRBIN/Demonep &
+	$GRUPO/Demonep &
 	pid=$(pgrep -x -n "Demonep")
 	logMsg "Demonep corriendo bajo el no.: $pid"
 	echo "Para detener el proceso puede ejecutar el comando Stop_Daemon Demonep"
@@ -121,20 +121,20 @@ isset_var "$DIRINFO" "DIRINFO" || return 1
 isset_var "$DIRLOG" "DIRLOG" || return 1
 
 
-DIRBIN=$GRUPO$DIRBIN
-DIRMAE=$GRUPO$DIRMAE
-DIRREC=$GRUPO$DIRREC
-DIROK=$GRUPO$DIROK
-DIRPROC=$GRUPO$DIRPROC
-DIRINFO=$GRUPO$DIRINFO
-DIRLOG=$GRUPO$DIRLOG
+DIRBIN=$GRUPO/$DIRBIN
+DIRMAE=$GRUPO/$DIRMAE
+DIRREC=$GRUPO/$DIRREC
+DIROK=$GRUPO/$DIROK
+DIRPROC=$GRUPO/$DIRPROC
+DIRINFO=$GRUPO/$DIRINFO
+DIRLOG=$GRUPO/$DIRLOG
 
 
 #3: CHEQUEAR LOS PERMISOS
 #Archivos DIRMAE/centros.csv, provincias.csv y trimestres.csv
-setReadeable "DIRMAE/centros.csv" "centros.csv" || return 1
-setReadeable "DIRMAE/provincias.csv" "provincias.csv" || return 1
-setReadeable "DIRMAE/trimestres.csv" "trimestres.csv" || return 1
+#setReadeable "DIRMAE/centros.csv" "centros.csv" || return 1
+#setReadeable "DIRMAE/provincias.csv" "provincias.csv" || return 1
+#setReadeable "DIRMAE/trimestres.csv" "trimestres.csv" || return 1
 
 
 MSG="¿Desea efectuar la activacion de Demonep? s/n"
