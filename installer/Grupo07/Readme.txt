@@ -40,8 +40,8 @@ rep
 
 
 ######### EJECUCIÓN #########
-Antes de ejecutar el sistema deberá inicializarlo mediante el proceso Initep, para eso deberá ejecutar, desde el directorio raíz, el siguiente comando:
-. ./Initep dirconf/Instalep.conf
+Antes de ejecutar el sistema deberá inicializarlo mediante el proceso Initep, para eso deberá ejecutar, desde el directorio bin, el siguiente comando:
+. ./Initep ../dirconf/Instalep.conf
 
 Una vez inicializada la aplicación podrá lanzar el proceso Demonep con el comando:
 ./Demonep &

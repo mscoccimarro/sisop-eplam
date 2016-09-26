@@ -9,7 +9,7 @@ else
     exit 1
   fi
 
-  LOG_MAX_SIZE=500
+  LOG_MAX_SIZE=10000
   LOG_LAST_LINES=5
   CMD=$1
   LOG_FILE=$DIRLOG$CMD.log

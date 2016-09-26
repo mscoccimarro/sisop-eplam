@@ -109,7 +109,7 @@ export DIROK=$(get_var "DIROK")
 export DIRPROC=$(get_var "DIRPROC")
 export DIRINFO=$(get_var "DIRINFO")
 export DIRLOG=$(get_var "DIRLOG")
-
+export DIRNOK=$(get_var "DIRNOK")
 
 isset_var "$GRUPO" "GRUPO" || return 1
 isset_var "$DIRBIN" "DIRBIN" || return 1
@@ -119,7 +119,7 @@ isset_var "$DIROK" "DIROK" || return 1
 isset_var "$DIRPROC" "DIRPROC" || return 1
 isset_var "$DIRINFO" "DIRINFO" || return 1
 isset_var "$DIRLOG" "DIRLOG" || return 1
-
+isset_var "$DIRNOK" "DIRNOK" || return 1
 
 DIRBIN=$GRUPO/$DIRBIN
 DIRMAE=$GRUPO/$DIRMAE
@@ -128,7 +128,7 @@ DIROK=$GRUPO/$DIROK
 DIRPROC=$GRUPO/$DIRPROC
 DIRINFO=$GRUPO/$DIRINFO
 DIRLOG=$GRUPO/$DIRLOG
-
+DIRNOK=$GRUPO/$DIRNOK
 
 PATH=$PATH:$DIRBIN
 

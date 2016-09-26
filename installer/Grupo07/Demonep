@@ -12,10 +12,10 @@
 #LOGEP=$DIRBIN"/Logep"
 #PROCEP=$DIRBIN"/Procep"
 #MOVEP=$DIRBIN"/Movep"
-#CENTROS=$DIRMAE"/centros.csv"
-#PROVINCIAS=$DIRMAE"/provincias.csv"
-#TRIMESTRES=$DIRMAE"/trimestres.csv"
-###########################################################################################
+############################################################################################
+CENTROS=$DIRMAE"/centros.csv"
+PROVINCIAS=$DIRMAE"/provincias.csv"
+TRIMESTRES=$DIRMAE"/trimestres.csv"
 
 variables_ambiente=(GRUPO DIRBIN DIRMAE DIRREC DIROK DIRPROC DIRINFO DIRLOG)
 directorios_necesarios=(DIRMAE DIRREC DIROK DIRNOK DIRLOG DIRBIN)
@@ -265,14 +265,14 @@ function procep(){
 function mover(){
   ubicacion=$PWD
   cd $DIRBIN
-  #./Movep $1 $2
+  ./Movep "$1" "$2"
   cd $ubicacion
 }
 
 function log(){
   ubicacion=$PWD
   cd $DIRBIN
-  #./Logep $1 "$2"
+  ./Logep $1 "$2"
   cd $ubicacion
 }
 
@@ -292,6 +292,7 @@ function main(){
     if [ "$(ls -A)" ]; then
       for archivo in *
       do
+	log $comando "Archivo detectado: $archivo"
 	archivo_tipo_contenido_valido $archivo
 	if [ $? == 1 ];
 	then
@@ -308,7 +309,6 @@ function main(){
 	else
 	  mover $DIRREC/$archivo $DIRNOK
 	fi
-	log $comando "Archivo detectado: $archivo"
       done  
       ver_procep
     fi
