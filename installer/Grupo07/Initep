@@ -1,0 +1,154 @@
+#!/bin/bash
+
+
+#**************** DECLARACION DE FUNCIONES ****************#
+
+
+#Recibe un campo del config file como parámetro y devuelve su valor
+#el archivo de configuracion debe ser de la forma
+#campo1=valor1=sarasa
+#campo2=valor2=otros=campos
+#-m1 busca la primera aparicion
+get_var()
+{
+	grep -m1 $1 $CONFIG_FILE | cut -d '=' -f 2
+}
+
+#$1=valor, $2=nombre de la variable
+#Valida si la variable tiene asignada algun valor, sino muestra mensaje y termina el programa
+isset_var() {
+	if [ -z "$1" ] 
+	then 
+		echo "No se puede inicializar la variable $2" 
+		return 1
+	fi
+}
+
+#Valida el SetReadeable
+validateSetReadeable() {
+	if [ "$1" != "0" ] 
+	then
+		logMsg "ERROR: no se puede asignarle permiso de escritura a $2"	
+		return 1
+	fi
+}
+
+
+#Setea en readeable el archivo pasado por parámetro
+#Devuelve 0 si todo va bien, !=0 en caso contrario
+setReadeable() {
+	if ! test -r $1
+	then 
+		#TODO: LOG ARCHIVO NO TIENE PERMISOS NECESARIOS
+		logMsg "Asignando permiso de escritura a $2" 
+		chmod -f +r $1
+		validateSetReadeable "$?" $2
+	fi
+}
+
+#Recibe un mensaje y lo guarda en el log del comando 
+logMsg() {
+	echo "$1"
+	#echo "¿Desea efectuar la activacion de Demonep? s/n"
+	$GRUPO/Logep "$COMMAND" "$1"
+}
+
+iniciar_daemonep() {
+	$GRUPO/Demonep &
+	pid=$(pgrep -x -n "Demonep")
+	logMsg "Demonep corriendo bajo el no.: $pid"
+	echo "Para detener el proceso puede ejecutar el comando Stop_Daemon Demonep"
+}
+
+show_start_daemonep()
+{
+	echo "Puede iniciar Demonep más adelante ejecutando ./Demonep"
+}
+
+
+
+
+#**************** COMIENZO DEL SCRIPT ****************#
+
+
+
+export COMMAND="INITEP"
+
+CONFIG_FILE=$1 #guarda en una variable el archivo Instalep.conf recibido por parametro
+
+#Valida que se haya ingresado un parámetro
+if [ "$CONFIG_FILE" = "" ] 
+then
+	echo "Debe indicar por parámetro un archivo de configuracion"
+	return 1
+
+#Valida que el archivo de configuracion tenga permiso de lectura
+elif ! test -r "$CONFIG_FILE" 
+then
+	echo "El archivo no puede ser leído"
+	return 1
+fi
+
+
+#1: veo si ya fue iniciado el ambiente
+if [ "$ENVIRONMENT_ISSET" = "true" ]
+then
+	logMsg "Ambiente ya inicializado, para reiniciar termine la sesión e ingrese nuevamente"
+	return 1 #termina la ejecucion con 1 para indicar error
+else
+	export ENVIRONMENT_ISSET="true"
+fi
+
+
+#2: SETEAR LAS VARIABLES DE AMBIENTE
+export GRUPO=$(get_var "GRUPO")
+export DIRBIN=$(get_var "DIRBIN")
+export DIRMAE=$(get_var "DIRMAE")
+export DIRREC=$(get_var "DIRREC")
+export DIROK=$(get_var "DIROK")
+export DIRPROC=$(get_var "DIRPROC")
+export DIRINFO=$(get_var "DIRINFO")
+export DIRLOG=$(get_var "DIRLOG")
+
+
+isset_var "$GRUPO" "GRUPO" || return 1
+isset_var "$DIRBIN" "DIRBIN" || return 1
+isset_var "$DIRMAE" "DIRMAE" || return 1
+isset_var "$DIRREC" "DIRREC" || return 1
+isset_var "$DIROK" "DIROK" || return 1
+isset_var "$DIRPROC" "DIRPROC" || return 1
+isset_var "$DIRINFO" "DIRINFO" || return 1
+isset_var "$DIRLOG" "DIRLOG" || return 1
+
+
+DIRBIN=$GRUPO/$DIRBIN
+DIRMAE=$GRUPO/$DIRMAE
+DIRREC=$GRUPO/$DIRREC
+DIROK=$GRUPO/$DIROK
+DIRPROC=$GRUPO/$DIRPROC
+DIRINFO=$GRUPO/$DIRINFO
+DIRLOG=$GRUPO/$DIRLOG
+
+
+#3: CHEQUEAR LOS PERMISOS
+#Archivos DIRMAE/centros.csv, provincias.csv y trimestres.csv
+#setReadeable "DIRMAE/centros.csv" "centros.csv" || return 1
+#setReadeable "DIRMAE/provincias.csv" "provincias.csv" || return 1
+#setReadeable "DIRMAE/trimestres.csv" "trimestres.csv" || return 1
+
+
+MSG="¿Desea efectuar la activacion de Demonep? s/n"
+logMsg "$MSG"
+read start_demonep
+if [ $start_demonep = "s" ]
+then
+	MSG="Si: Iniciando Demonep..."
+	logMsg "$MSG"
+	iniciar_daemonep	
+else
+	MSG="No: Saliendo de la aplicación"
+	logMsg "$MSG"
+fi
+
+
+
