@@ -50,11 +50,11 @@ setReadeable() {
 logMsg() {
 	echo "$1"
 	#echo "¿Desea efectuar la activacion de Demonep? s/n"
-	$GRUPO/Logep "$COMMAND" "$1"
+	$DIRBIN/Logep "$COMMAND" "$1"
 }
 
 iniciar_daemonep() {
-	$GRUPO/Demonep &
+	$DIRBIN/Demonep &
 	pid=$(pgrep -x -n "Demonep")
 	logMsg "Demonep corriendo bajo el no.: $pid"
 	echo "Para detener el proceso puede ejecutar el comando Stop_Daemon Demonep"
@@ -130,6 +130,19 @@ DIRINFO=$GRUPO/$DIRINFO
 DIRLOG=$GRUPO/$DIRLOG
 
 
+PATH=$PATH:$DIRBIN
+
+
+
+files_are_readable () {
+  for x do
+  	fileName=`basename $x`
+    [ -r "$x" ] || setReadeable "$x" $fileName
+  done
+}
+
+files_are_readable $DIRMAE/* || return 1
+
 #3: CHEQUEAR LOS PERMISOS
 #Archivos DIRMAE/centros.csv, provincias.csv y trimestres.csv
 #setReadeable "DIRMAE/centros.csv" "centros.csv" || return 1
@@ -148,6 +161,13 @@ then
 else
 	MSG="No: Saliendo de la aplicación"
 	logMsg "$MSG"
+
+	MSG="Puede iniciar el proceso durante la sesión ejecutando el comando:"
+	logMsg "$MSG"
+
+	MSG="Demonep &"
+	logMsg "$MSG"
+
 fi
 
 

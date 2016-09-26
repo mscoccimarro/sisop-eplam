@@ -125,6 +125,20 @@ create_dirs() {
   done
 }
 
+move_files() {
+
+  ##Moves data files to MAE directory
+  cp $GRUPO/Datos/* $GRUPO/$DIRMAE
+  mv $GRUPO/Datos $GRUPO/bkp_datos
+
+  ##Move scripts to BIN directory
+  mv Demonep $GRUPO/$DIRBIN
+  mv Initep $GRUPO/$DIRBIN
+  mv Logep $GRUPO/$DIRBIN
+  mv Movep $GRUPO/$DIRBIN  
+  mv Stop_Daemon $GRUPO/$DIRBIN
+}
+
 ## Save configuration variables
 save_conf() {
   echolog -p "Actualizando la configuracion del sistema\n"
@@ -226,6 +240,9 @@ done
   
   ## Create directories
   create_dirs
+
+  ##Move data files to MAE directory and scripts to BIN
+  move_files
 
   ## Save config. variables
   save_conf
