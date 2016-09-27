@@ -141,16 +141,12 @@ files_are_readable () {
   done
 }
 
-
-#3: CHEQUEAR LOS PERMISOS
 files_are_readable $DIRMAE/* || return 1
 
-
-
+#3: CHEQUEAR LOS PERMISOS
 export ENVIRONMENT_ISSET="true"
 MSG="El sistema se ha iniciado correctamente."
 logMsg "$MSG"
-
 
 MSG="¿Desea efectuar la activacion de Demonep? s/n"
 logMsg "$MSG"
