@@ -186,11 +186,16 @@ while [ $CONTINUE != "S" ]; do
 
   ## Request minimum free space required
   VALID="N"
+  DEF_DATASIZE=100
   while [ $VALID != "S" ]; do
-    DATASIZE=100
-    DATAMSG="Defina espacio minimo libre para la recepcion de archivos en Mbytes ($DATASIZE): " 
+    DATAMSG="Defina espacio minimo libre para la recepcion de archivos en Mbytes ($DEF_DATASIZE): " 
     echo -e ""
     read -p "$DATAMSG" DATASIZE
+    ## Handle empty input
+    if [ -z "$DATASIZE" -o "$DATASIZE" == " " ]; then
+      DATASIZE=100
+    fi
+
     echolog "$DATAMSG $DATASIZE"
 
     ## Check available size
