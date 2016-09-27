@@ -17,7 +17,7 @@ else
   DATE=$(date +"%d-%m-%Y %T")
   TIMESTAMP=$(date +"%d-%m-%Y-%H-%M-%S")
   USER=$USER
-  METADATA="$USER | $DATE |"
+  METADATA="$USER | $DATE | $CMD |"
   # TYPE defaults to "INFO"
   TYPE="INFO"
   if [ $# == 3 ]; then
