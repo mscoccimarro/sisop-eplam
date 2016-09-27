@@ -24,8 +24,36 @@ isset_var() {
 	fi
 }
 
+
+#Recibe una lista de archivos y valida si son legibles, sino les da permisos
+files_are_readable () {
+  for x do
+  	fileName=`basename $x`
+    [ -r "$x" ] || setReadeable "$x" $fileName || return 1
+  done
+}
+
+
+files_are_executable () {
+  for x do
+  	fileName=`basename $x`
+    [ -x "$x" ] || setExecutable "$x" $fileName || return 1
+  done
+}
+
+
+
 #Valida el SetReadeable
 validateSetReadeable() {
+	if [ "$1" != "0" ] 
+	then
+		logMsg "ERROR: no se puede asignarle permiso de lectura a $2"	
+		return 1
+	fi
+}
+
+
+validateSetExecutable() {
 	if [ "$1" != "0" ] 
 	then
 		logMsg "ERROR: no se puede asignarle permiso de escritura a $2"	
@@ -33,18 +61,29 @@ validateSetReadeable() {
 	fi
 }
 
-
 #Setea en readeable el archivo pasado por parámetro
 #Devuelve 0 si todo va bien, !=0 en caso contrario
 setReadeable() {
 	if ! test -r $1
 	then 
 		#TODO: LOG ARCHIVO NO TIENE PERMISOS NECESARIOS
-		logMsg "Asignando permiso de escritura a $2" 
+		logMsg "Asignando permiso de lectura a $2" 
 		chmod -f +r $1
 		validateSetReadeable "$?" $2
 	fi
 }
+
+
+setExecutable() {
+	if ! test -x $1
+	then 
+		logMsg "Asignando permiso de escritura a $2" 
+		chmod -f +x $1
+		validateSetExecutable "$?" $2 || return 1
+	fi
+}
+
+
 
 #Recibe un mensaje y lo guarda en el log del comando 
 logMsg() {
@@ -54,7 +93,7 @@ logMsg() {
 }
 
 iniciar_daemonep() {
-	$DIRBIN/Demonep &
+	Demonep &
 	pid=$(pgrep -x -n "Demonep")
 	logMsg "Demonep corriendo bajo el no.: $pid"
 	echo "Para detener el proceso puede ejecutar el comando Stop_Daemon Demonep"
@@ -134,19 +173,15 @@ PATH=$PATH:$DIRBIN
 
 
 
-files_are_readable () {
-  for x do
-  	fileName=`basename $x`
-    [ -r "$x" ] || setReadeable "$x" $fileName
-  done
-}
-
-files_are_readable $DIRMAE/* || return 1
-
 #3: CHEQUEAR LOS PERMISOS
+files_are_readable $DIRMAE/* || return 1
+files_are_executable $DIRBIN/* || return 1
+
+
 export ENVIRONMENT_ISSET="true"
 MSG="El sistema se ha iniciado correctamente."
 logMsg "$MSG"
+
 
 MSG="¿Desea efectuar la activacion de Demonep? s/n"
 logMsg "$MSG"
