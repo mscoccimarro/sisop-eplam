@@ -1,0 +1,255 @@
+#!/bin/bash
+GRUPO=$(pwd)
+DIRCONF="dirconf"
+CONF_FILE="$GRUPO/$DIRCONF/Instalep.conf"
+LOG_FILE="$GRUPO/$DIRCONF/Instalep.log"
+
+## Print and log given message
+echolog() {
+  if [ $# == 1 ]; then 
+    echo -e "$1" >> $LOG_FILE
+  else
+    if [ "$1" == "-p" ]; then echo -e "$2" >&2; fi
+    echo -e "$2" >> $LOG_FILE
+  fi
+}
+
+## List files given path
+list_path() {
+  echolog -p " _"
+  for lfile in $(ls $1); do
+    echolog -p "| - $lfile"
+  done
+  echolog -p ""
+} >&2
+
+## Show dir paths
+show_dirs() {
+  echolog -p "\nDirectorio de Configuracion: $GRUPO/$DIRCONF"
+  if [ "$1" == "-l" ]; then list_path "$GRUPO/$DIRCONF"; fi
+  echolog -p "Directorio de Ejecutables: $GRUPO/$DIRBIN"
+  if [ "$1" == "-l" ]; then list_path "$GRUPO/$DIRBIN"; fi
+  echolog -p "Directorio de Maestros y Tablas: $GRUPO/$DIRMAE"
+  if [ "$1" == "-l" ]; then list_path "$GRUPO/$DIRMAE"; fi
+  echolog -p "Directorio de Recepcion de Novedades: $GRUPO/$DIRREC"
+  echolog -p "Directorio de Archivos Aceptados: $GRUPO/$DIROK"
+  echolog -p "Directorio de Archivos Procesados: $GRUPO/$DIRPROC"
+  echolog -p "Directorio de Archivos de Reportes: $GRUPO/$DIRINFO"
+  echolog -p "Directorio de Archivos de Log: $GRUPO/$DIRLOG"
+  echolog -p "Directorio de Archivos de Rechazados: $GRUPO/$DIRNOK"
+}
+
+## Get parameter conf. value
+load_conf_var() {
+  echo $(grep -i $1 $CONF_FILE | cut -f 2 -d '=')
+}
+
+## Load install conf. file
+load_conf() {
+  GRUPO=$(load_conf_var GRUPO)
+  DIRBIN=$(load_conf_var DIRBIN)
+  DIRMAE=$(load_conf_var DIRMAE)
+  DIRREC=$(load_conf_var DIRREC)
+  DIROK=$(load_conf_var DIROK)
+  DIRPROC=$(load_conf_var DIRPROC)
+  DIRINFO=$(load_conf_var DIRINFO)
+  DIRLOG=$(load_conf_var DIRLOG)
+  DIRNOK=$(load_conf_var DIRNOK)
+}
+
+## Log process started
+echolog "Inicio del Proceso. $USER $(date +"%d-%m-%Y %T")"
+
+# Check if already installed
+if [ -f $CONF_FILE ]; then
+  clear
+  echo -e "###\tEl sistema EPLAM ya se encuentra instalado\t###\n"
+  load_conf
+  show_dirs -l
+  exit 0
+fi
+
+# Set directory default values
+DIRBIN="bin"
+DIRMAE="mae"
+DIRREC="nov"
+DIROK="ok"
+DIRPROC="imp"
+DIRINFO="rep"
+DIRLOG="log"
+DIRNOK="nok"
+VALID="N"
+
+# Updates reserved values list
+update_reserved() {
+  RESERVED="$DIRCONF $DIRBIN $DIRMAE $DIRREC $DIROK $DIRPROC $DIRINFO $DIRLOG $DIRNOK" 
+}
+
+# Requests directory path
+request_dirpath() {
+  update_reserved
+  local VALID="N"  
+  while [ $VALID == "N" ]; do
+    ## Prompt for directory
+    read -p "$1" UINPUT 
+    echolog "$1 $UINPUT"
+    ## Validate user input
+    if [ ! -z "$UINPUT" -a "$UINPUT" != " " ]; then
+      VALID="Y"
+      for rname in $RESERVED; do
+	if [ $UINPUT == $rname ]; then
+	  echo -e "\n# El nombre $UINPUT se encuentra reservado\n" >&2
+	  VALID="N"
+	  break
+	fi
+      done
+      ## If name not reserved
+      if [ $VALID == "Y" ]; then
+        echo "$UINPUT"
+      fi
+    else
+      VALID="Y"
+      echo "$2"
+    fi
+  done
+}
+
+## Create dir paths
+create_dirs() {
+  update_reserved
+  echolog -p "\nCreando Estructuras de directorio . . . .\n"
+  for dir in $RESERVED; do
+    if [ ! -d "$GRUPO/$dir" ]; then
+      mkdir "$GRUPO/$dir"  
+    fi
+  done
+}
+
+move_files() {
+
+  ##Moves data files to MAE directory
+  cp $GRUPO/Datos/* $GRUPO/$DIRMAE
+  mv $GRUPO/Datos $GRUPO/bkp_datos
+
+  ##Move scripts to BIN directory
+  mv Demonep $GRUPO/$DIRBIN
+  mv Initep $GRUPO/$DIRBIN
+  mv Logep $GRUPO/$DIRBIN
+  mv Movep $GRUPO/$DIRBIN  
+  mv Stop_Daemon $GRUPO/$DIRBIN
+}
+
+## Save configuration variables
+save_conf() {
+  echolog -p "Actualizando la configuracion del sistema\n"
+  USER_META="$USER=$(date +"%d-%m-%Y %T")"
+  echo "GRUPO=$GRUPO=$USER_META" >> $CONF_FILE 
+  echo "DIRBIN=$DIRBIN=$USER_META" >> $CONF_FILE 
+  echo "DIRMAE=$DIRMAE=$USER_META" >> $CONF_FILE 
+  echo "DIRREC=$DIRREC=$USER_META" >> $CONF_FILE 
+  echo "DIROK=$DIROK=$USER_META" >> $CONF_FILE 
+  echo "DIRPROC=$DIRPROC=$USER_META" >> $CONF_FILE 
+  echo "DIRINFO=$DIRINFO=$USER_META" >> $CONF_FILE 
+  echo "DIRLOG=$DIRLOG=$USER_META" >> $CONF_FILE 
+  echo "DIRNOK=$DIRNOK=$USER_META" >> $CONF_FILE 
+  echolog -p "Instalacion CONCLUIDA.\n"
+}
+
+end_install() {
+  echolog "Fin del Proceso. $USER $(date +"%d-%m-%Y %T")"
+  exit 0
+}
+
+CONTINUE="N"
+while [ $CONTINUE != "S" ]; do
+  clear
+  echo -e "###\tInstalador del sistema EPLAM\t###\n"
+  echo -e "- Para aceptar las opciones por default (), solamente presione enter.\n"
+  echo -e "- Todos los directorios deben ser ingresados sin '/' al inicio ni al final ( Ej: midir/misubdir ).\n"
+  echo -e "- El directorio ingresado sera relativo a: $GRUPO\n\n"
+  ## Request exec directory
+  DIRBIN=$(request_dirpath "Defina el directorio de Ejecutables ($GRUPO/$DIRBIN): " $DIRBIN)
+  ## Request file directory
+  DIRMAE=$(request_dirpath "Defina el directorio de Maestros y Tablas ($GRUPO/$DIRMAE): " $DIRMAE)
+  ## Request updates directory
+  DIRREC=$(request_dirpath "Defina el directorio de Recepcion de Novedades ($GRUPO/$DIRREC): " $DIRREC)
+  ## Request accepted files directory
+  DIROK=$(request_dirpath "Defina el directorio de Archivos Aceptados ($GRUPO/$DIROK): " $DIROK)
+  ## Request processed files directory
+  DIRPROC=$(request_dirpath "Defina el directorio de Archivos Procesados ($GRUPO/$DIRPROC): " $DIRPROC)
+  ## Request reports directory
+  DIRINFO=$(request_dirpath "Defina el directorio de Reportes ($GRUPO/$DIRINFO): " $DIRINFO)
+  ## Request log directory
+  DIRLOG=$(request_dirpath "Defina el directorio de log ($GRUPO/$DIRLOG): " $DIRLOG)
+  ## Request rejected directory
+  DIRNOK=$(request_dirpath "Defina el directorio de rechazados ($GRUPO/$DIRNOK): " $DIRNOK)
+
+  ## Request minimum free space required
+  VALID="N"
+  DEF_DATASIZE=100
+  while [ $VALID != "S" ]; do
+    DATAMSG="Defina espacio minimo libre para la recepcion de archivos en Mbytes ($DEF_DATASIZE): " 
+    echo -e ""
+    read -p "$DATAMSG" DATASIZE
+    ## Handle empty input
+    if [ -z "$DATASIZE" -o "$DATASIZE" == " " ]; then
+      DATASIZE=100
+    fi
+
+    echolog "$DATAMSG $DATASIZE"
+
+    ## Check available size
+    AVAILABLE_SIZE=$(df -m --output='avail' . | tail -n 1)
+
+    if [ $AVAILABLE_SIZE -lt $DATASIZE ]; then
+      echolog -p "Insuficiente espacio en disco." 
+      echolog -p "Espacio disponible: $AVAILABLE_SIZE Mb."
+      echolog -p "Espacio requerido: $DATASIZE Mb."
+      read -p "Intentelo nuevamente." DUMMY_VAR
+      echolog "Intentelo nuevamente."
+    else
+      VALID="S"
+      echolog -p "Suficiente espacio en disco." 
+      echolog -p "Espacio disponible: $AVAILABLE_SIZE Mb."
+      echolog -p "Espacio requerido: $DATASIZE Mb."
+      read -p "De enter para continuar." DUMMY_VAR
+      echolog "De enter para continuar."
+    fi
+  done
+
+  clear
+  ## Show configured directories
+  show_dirs
+  echolog -p "Estado de la instalacion: LISTA"
+
+  echo -e "\n"
+  read -p "Desea continuar con la instalacion? ( S / N ): " CONTINUE
+  echolog "Desea continuar con la instalacion? ( S / N ): $CONTINUE"
+  ## Catch empty response as 'S'
+  if [ -z "$CONTINUE" -o "$CONTINUE" == " " ]; then
+    CONTINUE="S"
+  fi
+done
+
+  read -p "Iniciando Instalacion. Esta Ud. seguro? ( S / N ): " CONTINUE
+  echolog "Iniciando Instalacion. Esta Ud. seguro? ( S / N ): $CONTINUE"
+  ## Catch empty response as 'S'
+  if [ -z "$CONTINUE" -o "$CONTINUE" == " " ]; then
+    CONTINUE="S"
+  fi
+
+  ## Interrupt install
+  if [ $CONTINUE != "S" ]; then
+    end_install
+  fi
+  
+  ## Create directories
+  create_dirs
+
+  ##Move data files to MAE directory and scripts to BIN
+  move_files
+
+  ## Save config. variables
+  save_conf
+
+  end_install
