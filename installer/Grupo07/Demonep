@@ -25,7 +25,7 @@ directorios_ejecucion=(DIRBIN)
 archivos_necesarios=(LOGEP PROCEP MOVEP CENTROS PROVINCIAS TRIMESTRES)
 archivos_lectura=(CENTROS PROVINCIAS TRIMESTRES)
 archivos_ejecucion=(LOGEP PROCEP MOVEP)
-sleep_segs=240
+sleep_segs=60
 comando="Demonep"
 
 function verificar_variables_ambiente(){
@@ -163,10 +163,62 @@ function provincia_valida(){
   return 0
 }
 
+function es_fecha(){
+  fecha=$1
+  mes=${fecha:4:2}
+  dia=${fecha:6:2}
+  case $mes in
+  01|03|05|07|08|10|12)
+      cant_dias=31
+      if [ $dia -gt $cant_dias -o $dia -lt 1 ]; then
+	return 0
+      fi
+    ;;
+  04|06|09|11)
+      cant_dias=30
+      if [ $dia -gt $cant_dias -o $dia -lt 1 ]; then
+	return 0
+      fi
+    ;;
+  02)
+      cant_dias=28
+      if [ $dia -gt $cant_dias -o $dia -lt 1 ]; then
+	return 0
+      fi
+    ;;    
+  *) return 0
+   ;;
+  esac
+  return 1
+}
+
+function cumple_fecha_presupuestaria(){
+  arch_completo=$1
+  fecha_arch=$(fecha $1)
+  anio_presup=$(echo "$arch_completo" | cut -d'_' -f 2)
+  encontrado=0
+  for elem in $(cut -d';' -f 1,3 $TRIMESTRES); do
+    for e in $( echo "$elem" | cut -d';' -f 1 ); do
+      if [ $anio_presup == $e ]; then
+	fecha=$( echo "$elem" | cut -d';' -f 2 )
+	let fecha_presup=${fecha:6:4}${fecha:3:2}${fecha:0:2}-1
+	if [ $fecha_presup -lt $fecha_arch ]; then
+	  return 1
+	fi
+      fi
+    done
+  done
+  return 0
+}
+
 function fecha_valida(){
+  fecha_completa=$1
+  let fecha_arch=$(fecha $fecha_completa)
   let fecha_ahora=$(date +%Y%m%d);
-  let fecha_arch=$1
-  if [ $fecha_ahora -gt $fecha_arch ]; then
+  cumple_fecha_presupuestaria $fecha_completa
+  cumple=$?
+  es_fecha $fecha_arch
+  if [ $? == 1 -a $fecha_ahora -gt $fecha_arch -a $cumple == 1 ]; then
     return 1
   fi
   return 0
@@ -216,8 +268,7 @@ function archivo_nombre_args_valido(){
 	return 0
       else
 	#Punto 9.VERIFICAR FECHA
-	fecha_archivo=$(fecha $archivo)
-	fecha_valida $fecha_archivo
+	fecha_valida $archivo
 	if [ $? == 0 ]; then
 	  log $comando "Archivo rechazado, motivo: fecha $fecha_archivo incorrecta."
 	  return 0
