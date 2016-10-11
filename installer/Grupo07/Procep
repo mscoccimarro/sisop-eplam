@@ -1,0 +1,202 @@
+#!/bin/bash
+
+############Inicializacion la utilizo para probar, cuando se integre quitar################
+#GRUPO="/home/user/Desktop/Grupo07"
+#DIRBIN=$GRUPO"/BIN"
+#DIRMAE=$GRUPO"/MAE"
+#DIRREC=$GRUPO"/REC"
+#DIROK=$GRUPO"/OK"
+#DIRNOK=$GRUPO"/NOK"
+#DIRPROC=$GRUPO"/PROC"
+#DIRINFO=$GRUPO"/INFO"
+#DIRLOG=$GRUPO"/LOG"
+#LOGEP=$DIRBIN"/Logep"
+#PROCEP=$DIRBIN"/Procep"
+#MOVEP=$DIRBIN"/Movep"
+############################################################################################
+CENTROS=$DIRMAE"/centros.csv"
+PROVINCIAS=$DIRMAE"/provincias.csv"
+TRIMESTRES=$DIRMAE"/trimestres.csv"
+ACTIVIDADES=$DIRMAE"/actividades.csv"
+
+PROCESADOS=$DIRPROC"/proc"
+
+variables_ambiente=(GRUPO DIRBIN DIRMAE DIRREC DIROK DIRPROC DIRINFO DIRLOG)
+directorios_necesarios=(DIRMAE DIROK DIRNOK DIRLOG DIRPROC DIRBIN)
+directorios_lectura=(DIRMAE DIROK)
+directorios_escritura=(DIRNOK DIRLOG DIRPROC)
+directorios_ejecucion=(DIRBIN)
+archivos_necesarios=(LOGEP MOVEP ACTIVIDADES CENTROS PROVINCIAS TRIMESTRES)
+archivos_lectura=(CENTROS PROVINCIAS TRIMESTRES ACTIVIDADES)
+archivos_ejecucion=(LOGEP MOVEP)
+
+comando="Procep"
+
+function verificar_variables_ambiente(){
+  for elem in "${variables_ambiente[@]}"
+  do
+    if [ -z ${!elem} ]; then      
+      echo "ERROR: No existe la variable de ambiente: \"${elem}\"."
+      exit 1;
+    fi  
+  done
+}
+
+function verificar_existencia_directorios(){
+  for elem in "${directorios_necesarios[@]}"
+  do
+    if [ ! -d ${!elem} ]; then      
+      echo "ERROR: No existe el directorio: \"${!elem}\"."
+      exit 2;
+    fi  
+  done
+}
+
+function verificar_directorios_lectura(){
+  for elem in "${directorios_lectura[@]}"
+  do
+    if [ ! -r ${!elem} ]; then      
+      echo "ERROR: No existen permisos de lectura en directorio: \"${!elem}\"."
+      exit 3;
+    fi  
+  done
+}
+
+function verificar_directorios_escritura(){
+  for elem in "${directorios_escritura[@]}"
+  do
+    if [ ! -w ${!elem} ]; then      
+      echo "ERROR: No existen permisos de escritura en directorio: \"${!elem}\"."
+      exit 4;
+    fi  
+  done
+}
+
+function verificar_directorios_ejecucion(){
+  for elem in "${directorios_ejecucion[@]}"
+  do
+    if [ ! -x ${!elem} ]; then      
+      echo "ERROR: No existen permisos de ejecucion en directorio: \"${!elem}\"."
+      exit 5;
+    fi  
+  done
+}
+
+function verificar_existencia_archivos(){
+  for elem in "${archivos_necesarios[@]}"
+  do
+    if [ ! -e ${!elem} ]; then      
+      echo "ERROR: No existe el archivo: \"${!elem}\"."
+      exit 6;
+    fi  
+  done
+}
+
+function verificar_archivos_lectura(){
+  for elem in "${archivos_lectura[@]}"
+  do
+    if [ ! -r ${!elem} ]; then      
+      echo "ERROR: No se cuentan con permisos de lectura para el archivo: \"${!elem}\"."
+      exit 7;
+    fi  
+  done
+}
+
+function verificar_archivos_ejecucion(){
+  for elem in "${archivos_ejecucion[@]}"
+  do
+    if [ ! -x ${!elem} ]; then      
+      echo "ERROR: No se cuentan con permisos de ejecucion para el archivo: \"${!elem}\"."
+      exit 8;
+    fi  
+  done
+}
+
+function verificar_ambiente(){
+  verificar_variables_ambiente
+  verificar_existencia_directorios
+  verificar_directorios_lectura
+  verificar_directorios_escritura
+  verificar_directorios_ejecucion
+  verificar_existencia_archivos
+  verificar_archivos_lectura
+  verificar_archivos_ejecucion
+}
+
+function obtener_cantidad_archivos_a_procesar(){
+	ubicacion=$PWD 	
+ 	cd $DIROK
+ 	local cant = "$(ls -U -1 | wc -l)"
+ 	log $comando "Cantidad de archivos a procesar: $cant"
+ 	cd $ubicacion
+}
+
+function verificar_archivo_duplicado(){
+	ubicacion=$PWD
+	archivo=$1
+	cd $PROCESADOS
+	if [ -f "$archivo"]; then
+		log $comando "Archivo Duplicado. Se rechaza el archivo $archivo"
+		return 1
+	else
+		return 0
+	fi
+	cd $ubicacion
+}
+
+function verificar_formato(){
+	archivo=$1
+	local cant_campos=$(head -1 $archivo | sed 's/[^,]//g' | wc -c)
+	if ["$cant_campos" -eq 6]; then
+		return 1
+	else
+		log $comando "Estructura inesperada. Se rechaza el archivo $archivo"
+		return 0
+	fi
+}
+
+function procesar_archivo(){
+	archivo=$1
+	log $comando "Archivo a procesar $archivo"
+	#get año archivo
+	#get fecha archivo
+}
+
+function mover(){
+	ubicacion=$PWD
+	cd $DIRBIN
+	./Movep "$1" "$2"
+	cd $ubicacion
+}
+
+function log(){
+	ubicacion=$PWD
+	cd $DIRBIN
+	./Logep $1 "$2"
+	cd $ubicacion
+}
+
+function main(){
+	ubicacion=$PWD
+	cd $GRUPO
+	#Punto 1 OBLIGACIÓN DE INICIAR AMBIENTE ANTES DE EJECUTAR CUALQUIER COMANDO
+	verificar_ambiente
+	#Punto 2 PROCESAR TODOS LOS ARCHIVOS
+	obtener_cantidad_archivos_a_procesar
+	cd $DIROK
+	for archivo in * do
+		#Punto 3 ANTES DE PROCESAR UN ARCHIVO, VERIFICAR QUE NO ESTA DUPLICADO
+		verificar_archivo_duplicado $archivo
+		if [ $? == 1]; then
+			break
+		fi
+		#Punto 4 ANTES DE PROCESAR UN ARCHIVO, VERIFICAR EL FORMATO
+		verificar_formato $archivo
+		if [ $? == 0]; then
+			break
+		fi
+		procesar_archivo $archivo
+	done
+}
+
+main
