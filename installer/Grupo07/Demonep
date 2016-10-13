@@ -293,9 +293,9 @@ function ver_procep(){
 function procep(){
   ubicacion=$PWD
   cd $DIRBIN
-  #Procep &
-  #pid=$(pgrep -x -n "Procep")
-  #log $comando "Procep corriendo bajo el no.: $pid"
+  Procep &
+  pid=$(pgrep -x -n "Procep")
+  log $comando "Procep corriendo bajo el no.: $pid"
   cd $ubicacion    
 }
 
