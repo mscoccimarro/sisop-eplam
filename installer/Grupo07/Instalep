@@ -123,6 +123,7 @@ create_dirs() {
       mkdir "$GRUPO/$dir"  
     fi
   done
+  mkdir "$GRUPO/$DIRPROC/proc"
 }
 
 move_files() {
@@ -133,6 +134,7 @@ move_files() {
 
   ##Move scripts to BIN directory
   mv Demonep $GRUPO/$DIRBIN
+  mv Procep $GRUPO/$DIRBIN
   mv Initep $GRUPO/$DIRBIN
   mv Logep $GRUPO/$DIRBIN
   mv Movep $GRUPO/$DIRBIN  
