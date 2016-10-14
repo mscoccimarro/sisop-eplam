@@ -308,14 +308,22 @@ function obtener_motivo(){
 	if [ $2 == 1 ]; then
 		motivo+="Actividad inexistente. "
 	fi
-	if [ $3 != 0 ]; then
+	if [ $3 == 1 ]; then
 		motivo+="Trimestre invalido. "
+	else
+		if [ $3 == 2 ]; then
+			motivo+="El año del trimestre no se corresponde con el año presupuestario. "
+		fi
 	fi
-	if [ $4 == 1 ] || [ $4 == 2 ]; then
+	if [ $4 == 1 ]; then
 		motivo+="Fecha invalida. "
 	else
-		if [ $4 == 3 ]; then
-			motivo+="La fecha no se corresponde con el trimestre. "
+		if [ $4 == 2 ]; then
+			motivo+="La fecha es posterior a la del presupuesto "
+		else
+			if [ $4 == 3 ] && [ $3 != 1 ]; then
+				motivo+="La fecha no se corresponde con el trimestre. "
+			fi
 		fi
 	fi
 	if [ $5 == 1 ]; then
@@ -356,7 +364,7 @@ function registro_rechazado(){
 	cd $DIRPROC
 	local fecha_hora=$(date +%Y%m%d%H%M%S)
 	local reg_trans=$(sed "s/;/,/g" <<< "$1")
-	local reg_rechazado="$2;$4;$reg_trans;USER;$fecha_hora" #MODIFICAR POR USUARIO
+	local reg_rechazado="$2;$4;$reg_trans;$USER;$fecha_hora" #MODIFICAR POR USUARIO
 	local filename="rechazado-$3.csv"
 	if ! [ -f "$filename" ]; then
 		crear_rechazado $filename
