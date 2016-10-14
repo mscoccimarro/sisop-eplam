@@ -139,6 +139,7 @@ move_files() {
   mv Logep $GRUPO/$DIRBIN
   mv Movep $GRUPO/$DIRBIN  
   mv Stop_Daemon $GRUPO/$DIRBIN
+  mv Listep.pl $GRUPO/$DIRBIN
 }
 
 ## Save configuration variables
