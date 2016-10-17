@@ -1,12 +1,14 @@
 #!/usr/bin/perl
 use FindBin;
+use List::Util 1.33 'any';
 
 #Menú
 sub menu{
     print "********************LISTADO********************\n";
     print "* 1. Listar Presupuesto Sancionado.           *\n";
-    print "* 2. Ayuda del comando.                       *\n";
-    print "* 3. Salir.                                   *\n";
+    print "* 2. Listar Presupuesto Ejecutado.            *\n";
+    print "* 3. Ayuda del comando.                       *\n";
+    print "* 4. Salir.                                   *\n";
     print "***********************************************\n";
     
     my $opcion = <STDIN>;
@@ -17,10 +19,14 @@ sub menu{
         &menu;
     }
     if($opcion eq "2"){
-        &ayudaComando;
+        &listadoPresupuestoEjecutado;
         &menu;
     }
     if($opcion eq "3"){
+        &ayudaComando;
+        &menu;
+    }
+    if($opcion eq "4"){
         exit();
     }
     else{
@@ -54,7 +60,40 @@ sub listadoPresupuestoSancionado{
     } else{
         print "No existe esa opción.\n";
         &listadoPresupuestoSancionado;
-      }
+    }
+}
+
+#Listado de presupuesto ejecutado
+sub listadoPresupuestoEjecutado{
+    print "************************Presupuesto Ejecutado*************************\n";
+    print "******************************Filtrado********************************\n";
+    print "* 1. Filtrar una sola provincia.                                     *\n";
+    print "* 2. Filtrar varias provincias.                                      *\n";
+    print "* 3. Filtrar todas las Provincias.                                   *\n";
+    print "* 4. Volver.                                                         *\n";
+    print "**********************************************************************\n";
+    
+    my $opcion = <STDIN>;
+    chomp($opcion);
+    
+    if($opcion eq "1"){
+        &filtroProvincia;
+        &listadoPresupuestoEjecutado;
+    }
+    if($opcion eq "2"){
+        &filtroProvincias;
+        &listadoPresupuestoEjecutado;
+    }
+    if($opcion eq "3"){
+        &sinFiltro;
+        &listadoPresupuestoEjecutado;
+    }
+    if($opcion eq "4"){
+        &menu;
+    } else{
+        print "No existe esa opción.\n";
+        &listadoPresupuestoEjecutado;
+    }
 }
 
 sub ayudaComando{
@@ -309,6 +348,166 @@ sub generarHashesDeTrimestres(){
     }
     
     close(SANCIONADO);
+}
+
+sub abrirAXC{
+    open(AXC,"<$FindBin::Bin/../mae/tabla-AxC.csv") || die "ERROR: No se pudo abrir el archivo axc\n";
+    %axc;
+    #Guardo las actividades en un hash con el número de centro como clave.
+    <AXC>;
+    my @reg;
+    while(<AXC>){
+        chomp($_);
+        @reg = split(";",$_);
+        push @{$axc{@reg[1]}}, @reg[0];
+    }
+    close(AXC);
+}
+
+sub filtroProvincia{
+    &opcListado;
+    &abrirAXC;
+    open(EJECUTADO,"<$FindBin::Bin/../imp/ejecutado-$anio.csv") || die "ERROR: No se pudo abrir el archivo ejecutado-$anio.csv\n";
+    print "Ingrese la provincia\n";
+    my $provincia = <STDIN>;
+    chomp($provincia);
+    my $totalProv = 0;
+    my @reg;
+    print "Año presupuestario $anio";
+    printf("%45s\n",'Total ejecutado');
+    print "--------------------------------------------------------------------";
+    print "\n";
+    
+    if($opcionArchivo eq "s" || $opcionArchivo eq "S"){
+        open(SALIDA,">$FindBin::Bin/../rep/listado-presupuesto-ejecutado-$anio.csv") || die "ERROR: No se pudo crear el archivo para el listado\n";
+        print SALIDA "Fecha;Centro;Nom Cen;Cod Act;Actividad;Trimestre;Gasto;Provincia;Control\n";
+    }
+    <EJECUTADO>;
+    my @reg;
+    printf("%-10s","Actividad");
+    printf("%-20s","Centro");
+    printf("%-10s","Gasto");
+    print("Gasto Planificado?");
+    print ("\n");
+    while(<EJECUTADO>){
+        chomp($_);
+        @reg = split(";",$_);
+        if(@reg[8] eq $provincia){
+            printf("%-10s", @reg[7]);
+            printf("%-20s", @reg[2]);
+            printf("%-10s", @reg[5]);
+            if(any {/@reg[7]/} %axc{@reg[2]}){
+                print ("Si");
+                if($opcionArchivo eq "s" || $opcionArchivo eq "S"){
+                    print SALIDA "@reg[1];@reg[2];@reg[9];@reg[7];@reg[3];@reg[4];@reg[5];@reg[8]; \n";
+                }
+            }else{
+                print ("No"); 
+                if($opcionArchivo eq "s" || $opcionArchivo eq "S"){
+                    print SALIDA "@reg[1];@reg[2];@reg[9];@reg[7];@reg[3];@reg[4];@reg[5];@reg[8];Gasto fuera de planificacion\n";
+                }               
+            }
+            print ("\n");
+            $totalProv+=@reg[5];
+        }
+    }
+    print SALIDA "\n";
+    print "--------------------------------------------------------------------\n";
+    print "Total $provincia: $totalProv\n";
+    if($opcionArchivo eq "s" || $opcionArchivo eq "S"){
+        print SALIDA "Total @reg[8];$totalProv\n";
+    }   
+    close(EJECUTADO);
+}
+
+sub filtrar{
+    open(EJECUTADO,"<$FindBin::Bin/../imp/ejecutado-$anio.csv") || die "ERROR: No se pudo abrir el archivo ejecutado-$anio.csv\n";
+    print "Año presupuestario $anio";
+    printf("%45s\n",'Total ejecutado');
+    print "--------------------------------------------------------------------";
+    print "\n";
+    $i=0;
+    if($opcionArchivo eq "s" || $opcionArchivo eq "S"){
+        while(-e "$FindBin::Bin/../rep/listado-presupuesto-ejecutado-$anio-$i.csv"){
+            $i++;
+        }
+        open(SALIDA,">$FindBin::Bin/../rep/listado-presupuesto-ejecutado-$anio-$i.csv") || die "ERROR: No se pudo crear el archivo para el listado\n";
+        print SALIDA "Fecha;Centro;Nom Cen;Cod Act;Actividad;Trimestre;Gasto;Provincia;Control\n";
+    }
+    my %totalXProv;
+    foreach $prov (@prov_a_filtrar){
+        $totalXProv {$prov} = 0;
+    }
+
+    <EJECUTADO>;
+    my @reg;
+    printf("%-10s","Actividad");
+    printf("%-20s","Centro");
+    printf("%-10s","Gasto");
+    print("Gasto Planificado?");
+    print ("\n");
+    while(<EJECUTADO>){
+        chomp($_);
+        @reg = split(";",$_);
+        if(any {/@reg[8]/} @prov_a_filtrar){
+            printf("%-10s", @reg[7]);
+            printf("%-20s", @reg[2]);
+            printf("%-10s", @reg[5]);
+            if(any {/@reg[7]/} @{$axc{@reg[2]}}){
+                print ("No"); 
+                if($opcionArchivo eq "s" || $opcionArchivo eq "S"){
+                    print SALIDA "@reg[1];@reg[2];@reg[9];@reg[7];@reg[3];@reg[4];@reg[5];@reg[8]; \n";
+                }
+            }else{
+                print ("Si");
+                if($opcionArchivo eq "s" || $opcionArchivo eq "S"){
+                    print SALIDA "@reg[1];@reg[2];@reg[9];@reg[7];@reg[3];@reg[4];@reg[5];@reg[8];Gasto fuera de planificacion\n";
+                }               
+            }
+            print ("\n");
+            $totalXProv{@reg[8]}+=@reg[5];
+        }
+    }
+    print SALIDA "\n";
+    print "--------------------------------------------------------------------\n";
+    foreach $prov (@prov_a_filtrar){
+        print "Total $prov: $totalXProv{$prov}\n";
+        if($opcionArchivo eq "s" || $opcionArchivo eq "S"){
+            print SALIDA "Total $prov;$totalXProv{$prov}\n";
+        }   
+    }
+    close(EJECUTADO);
+    splice( @prov_a_filtrar );
+}
+
+sub abrirProvincias{
+    open(PROVINCIAS,"<$FindBin::Bin/../mae/provincias.csv") || die "ERROR: No se pudo abrir el archivo provincias\n";
+    @prov_a_filtrar;
+    my @reg;
+    <PROVINCIAS>;
+    while(<PROVINCIAS>){
+        chomp($_);
+        @reg = split(";",$_);
+        push @prov_a_filtrar, @reg[1];
+    }
+    close(PROVINCIAS);
+}
+
+sub filtroProvincias{
+    &opcListado;
+    &abrirAXC;
+    print "Ingrese las provincias separadas por un ;\n";
+    my $provincias = <STDIN>;
+    chomp($provincias);
+    @prov_a_filtrar = split(";",$provincias);
+    &filtrar;
+}
+
+sub sinFiltro{
+    &opcListado;
+    &abrirProvincias;
+    &abrirAXC;
+    &filtrar;
 }
 
 =sub obtenerPathDIRMAE(){
