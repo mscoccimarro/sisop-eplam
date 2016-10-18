@@ -113,7 +113,7 @@ show_start_daemonep()
 
 export COMMAND="INITEP"
 
-CONFIG_FILE=$1 #guarda en una variable el archivo Instalep.conf recibido por parametro
+CONFIG_FILE="dirconf/Instalep.conf"
 
 #Valida que se haya ingresado un parámetro
 if [ "$CONFIG_FILE" = "" ] 
