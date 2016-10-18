@@ -1,14 +1,17 @@
 #!/usr/bin/perl
 use FindBin;
 use List::Util 1.33 'any';
+use constant false => 0;
+use constant true  => 1;
 
 #Menú
 sub menu{
     print "********************LISTADO********************\n";
     print "* 1. Listar Presupuesto Sancionado.           *\n";
     print "* 2. Listar Presupuesto Ejecutado.            *\n";
-    print "* 3. Ayuda del comando.                       *\n";
-    print "* 4. Salir.                                   *\n";
+    print "* 3. Listar Control Presupuesto Ejecutado.    *\n";
+    print "* 4. Ayuda del comando.                       *\n";
+    print "* 5. Salir.                                   *\n";
     print "***********************************************\n";
     
     my $opcion = <STDIN>;
@@ -23,10 +26,14 @@ sub menu{
         &menu;
     }
     if($opcion eq "3"){
-        &ayudaComando;
+        &listadoControlPresupuestoEjecutado;
         &menu;
     }
     if($opcion eq "4"){
+        &ayudaComando;
+        &menu;
+    }
+    if($opcion eq "5"){
         exit();
     }
     else{
@@ -96,6 +103,90 @@ sub listadoPresupuestoEjecutado{
     }
 }
 
+#Listado del control presupuesto ejecutado
+sub listadoControlPresupuestoEjecutado{
+    print "********************Control Presupuesto Ejecutado*********************\n";
+    print "**************************Filtrado Trimeste***************************\n";
+    print "* 1. Filtrar un solo trimestre.                                      *\n";
+    print "* 2. Filtrar varios trimestres.                                      *\n";
+    print "* 3. Filtrar todos los trimestres.                                   *\n";
+    print "* 4. Volver.                                                         *\n";
+    print "**********************************************************************\n";
+    local @Centros_filtrados;
+    local @Trimestres_filtrados;
+    my $opcion = <STDIN>;
+    chomp($opcion);
+    
+    if($opcion eq "1"){
+		print "Escriba el numero de trimestre que quiere filtrar\n";
+		my $aux = <STDIN>;
+   		chomp($aux);
+		@Trimestres_filtrados[0] = $aux;
+    }elsif($opcion eq "2"){
+		print "Escriba los numeros de trimestres que quiere filtrar separados por un ;\n";
+		my $aux = <STDIN>;
+   		chomp($aux);
+		@Trimestres_filtrados = split(";",$aux);
+    }elsif($opcion eq "3"){
+		@Trimestres_filtrados = split (";","1;2;3;4")
+    }elsif($opcion eq "4"){
+        &menu;
+    }else{
+        print "No existe esa opción.\n";
+        &listadoControlPresupuestoEjecutado;
+    }
+    print "***************************Filtrado Centro****************************\n";
+    print "* 1. Filtrar un centro.                                              *\n";
+    print "* 2. Filtrar varios centros.                                         *\n";
+    print "* 3. Filtrar un rango de centros.                                    *\n";
+    print "* 4. Filtrar todas los centros.                                      *\n";
+    print "* 5. Volver.                                                         *\n";
+    print "**********************************************************************\n";
+    my $opcion = <STDIN>;
+    chomp($opcion);
+    
+    if($opcion eq "1"){
+		print "Escriba el codigo del centro que quiere filtrar\n";
+		my $aux = <STDIN>;
+   		chomp($aux);
+		@Centros_filtrados[0] = $aux;
+    }elsif($opcion eq "2"){
+		print "Escriba los codigos de los centros que quiere filtrar separados por ;\n";
+		my $aux = <STDIN>;
+   		chomp($aux);
+		@Centros_filtrados = split(";",$aux);
+    }elsif($opcion eq "3"){
+		&abrirCentros;
+		print "Escriba el rango de codigos de los centros que quiere filtrar seguido de un *\n";
+		my $aux = <STDIN>;
+   		chomp($aux);
+		$aux=substr($aux, 0, -1);
+		my @arr = keys %centros;
+		foreach $centro (@arr){
+            my $bool=true;
+            if(index($centro,$aux) eq -1){
+                $bool =false;
+            } 
+            if(length($centro)<length($aux)){
+                $bool =false;
+            } 
+			if($bool){
+				push @Centros_filtrados, $centro;		
+			}		
+		}	
+    }elsif($opcion eq "4"){
+		&abrirCentros;
+		@Centros_filtrados = keys %centros;
+    }elsif($opcion eq "5"){
+        &menu;
+    }else{
+        print "No existe esa opción.\n";
+        &listadoControlPresupuestoEjecutado;
+    }
+	&generarListadoControlEjecutado; 
+	&listadoControlPresupuestoEjecutado;     
+}
+
 sub ayudaComando{
     print "COMANDO LISTEP\n";
     print "--------------\n";
@@ -134,8 +225,14 @@ sub ordenTC{
     printf("%-47s",$centro);
     printf("%21.2f\n",$totalCentro);
     
+
+
+    my $i=0;
     if($opcionArchivo eq "s" || $opcionArchivo eq "S"){
-        open(SALIDA,">$FindBin::Bin/../rep/listado-presupuesto-sancionado-$anio-TC.csv") || die "ERROR: No se pudo crear el archivo para el listado\n";
+        while(-e "$FindBin::Bin/../rep/listado-presupuesto-sancionado-$anio-TC-$i.csv"){
+            $i++;
+        }
+        open(SALIDA,">$FindBin::Bin/../rep/listado-presupuesto-sancionado-$anio-TC-$i.csv") || die "ERROR: No se pudo crear el archivo para el listado\n";
         print SALIDA "Año presupuestario $anio;Total sancionado\n";
         print SALIDA "$centro;$totalCentro\n";
     }
@@ -181,6 +278,7 @@ sub ordenTC{
     }
     
     close(SANCIONADO);
+    print "Presione ENTER para continuar\n";
     <STDIN>;
 }
 
@@ -198,9 +296,12 @@ sub ordenCT{
     print "--------------------------------------------------------------------";
     print "\n";
     
+    my $i=0;
     if($opcionArchivo eq "s" || $opcionArchivo eq "S"){
-        open(SALIDA,">$FindBin::Bin/../rep/listado-presupuesto-sancionado-$anio-CT.csv") || die "ERROR: No se pudo crear el archivo para el listado\n";
-        print SALIDA "Año presupuestario $anio;Total sancionado\n";
+        while(-e "$FindBin::Bin/../rep/listado-presupuesto-sancionado-$anio-CT-$i.csv"){
+            $i++;
+        }
+        open(SALIDA,">$FindBin::Bin/../rep/listado-presupuesto-sancionado-$anio-CT-$i.csv") || die "ERROR: No se pudo crear el archivo para el listado\n";
     }
     
     my @arrCentros = keys %centros;
@@ -260,7 +361,7 @@ sub ordenCT{
         print SALIDA "Total Anual;$totalAnual\n";
         close(SALIDA);
     }
-    
+    print "Presione ENTER para continuar\n";
     <STDIN>;
 }
 
@@ -378,10 +479,15 @@ sub filtroProvincia{
     print "--------------------------------------------------------------------";
     print "\n";
     
+    my $i=0;
     if($opcionArchivo eq "s" || $opcionArchivo eq "S"){
-        open(SALIDA,">$FindBin::Bin/../rep/listado-presupuesto-ejecutado-$anio.csv") || die "ERROR: No se pudo crear el archivo para el listado\n";
+        while(-e "$FindBin::Bin/../rep/listado-presupuesto-ejecutado-$anio-$i.csv"){
+            $i++;
+        }
+        open(SALIDA,">$FindBin::Bin/../rep/listado-presupuesto-ejecutado-$anio-$i.csv") || die "ERROR: No se pudo crear el archivo para el listado\n";
         print SALIDA "Fecha;Centro;Nom Cen;Cod Act;Actividad;Trimestre;Gasto;Provincia;Control\n";
     }
+
     <EJECUTADO>;
     my @reg;
     printf("%-10s","Actividad");
@@ -408,7 +514,11 @@ sub filtroProvincia{
                 }               
             }
             print ("\n");
-            $totalProv+=@reg[5];
+            @aux = split(",",@reg[5]);
+            $num = "@aux[0].@aux[1]";
+            $totalXProv{@reg[8]} += $num;
+            splice( @aux );
+
         }
     }
     print SALIDA "\n";
@@ -418,6 +528,8 @@ sub filtroProvincia{
         print SALIDA "Total @reg[8];$totalProv\n";
     }   
     close(EJECUTADO);
+    print "Presione ENTER para continuar\n";
+    <STDIN>;
 }
 
 sub filtrar{
@@ -426,7 +538,7 @@ sub filtrar{
     printf("%45s\n",'Total ejecutado');
     print "--------------------------------------------------------------------";
     print "\n";
-    $i=0;
+    my $i=0;
     if($opcionArchivo eq "s" || $opcionArchivo eq "S"){
         while(-e "$FindBin::Bin/../rep/listado-presupuesto-ejecutado-$anio-$i.csv"){
             $i++;
@@ -465,7 +577,10 @@ sub filtrar{
                 }               
             }
             print ("\n");
-            $totalXProv{@reg[8]}+=@reg[5];
+			@aux = split(",",@reg[5]);
+			$num = "@aux[0].@aux[1]";
+            $totalXProv{@reg[8]} += $num;
+            splice( @aux );
         }
     }
     print SALIDA "\n";
@@ -478,6 +593,8 @@ sub filtrar{
     }
     close(EJECUTADO);
     splice( @prov_a_filtrar );
+    print "Presione ENTER para continuar\n";
+    <STDIN>;
 }
 
 sub abrirProvincias{
@@ -509,20 +626,157 @@ sub sinFiltro{
     &abrirAXC;
     &filtrar;
 }
+sub trim_a_str{
+	my $i =0;
+	foreach $trim (@Trimestres_filtrados){
+		if($trim eq "1"){
+			@Trimestres_filtrados[$i]= sprintf("%s","Primer Trimestre $anio");
+		}
+		elsif($trim eq "2"){
+			@Trimestres_filtrados[$i]= sprintf("%s","Segundo Trimestre $anio");
+		}
+		elsif($trim eq "3"){
+			@Trimestres_filtrados[$i]= sprintf("%s","Tercer Trimestre $anio");
+		}
+		elsif($trim eq "4"){
+			@Trimestres_filtrados[$i]= sprintf("%s","Cuarto Trimestre $anio");
+		}
+		$i++;
+	}
+}
+sub fechastrimestres{
+    open(EJECUTADO,"<$FindBin::Bin/../mae/trimestres.csv") || die "ERROR: No se pudo abrir el archivo de fechas.csv\n";
+    %fechaInicioTrim;
+    while(<EJECUTADO>){
+        chomp($_);
+        @reg = split(";",$_);
+        @fecha_aux= split("/",@reg[2]);
+        $fechaInicioTrim{@reg[1]} = "@fecha_aux[2]@fecha_aux[1]@fecha_aux[0]";
+    }
+}
 
-=sub obtenerPathDIRMAE(){
-    open(CONF,"<dirconf/Instalep.conf") || die "ERROR: No se pudo abrir el archivo Instalep.conf\n";
-    
-    #Obtengo el path de DIRMAE
-    while(<CONF>){
-        @reg = split("=",$_);
-        if(@reg[0] eq "DIRMAE"){
-            $path = @reg[1];
-            last;
+sub generarListadoControlEjecutado{
+	&opcListado;
+	&abrirAXC;
+	&trim_a_str;
+    &fechastrimestres;
+	open(EJECUTADO,"<$FindBin::Bin/../imp/ejecutado-$anio.csv") || die "ERROR: No se pudo abrir el archivo ejecutado-$anio.csv\n";
+	open(SANCIONADO,"<$FindBin::Bin/../mae/sancionado-$anio.csv") || die "ERROR: No se pudo abrir el archivo sancionado-$anio.csv\n";
+    print "Año presupuestario $anio";
+    printf("%45s\n",'Control total ejecutado');
+    print "--------------------------------------------------------------------";
+    print "\n";
+	%sancionadoXCentro_Trim;
+	%regXCentro_Fecha;
+    local $i=0;
+    if($opcionArchivo eq "s" || $opcionArchivo eq "S"){
+        while(-e "$FindBin::Bin/../rep/listado-control-presupuesto-ejecutado-$anio-$i.csv"){
+            $i++;
+        }
+        open(SALIDA,">$FindBin::Bin/../rep/listado-control-presupuesto-ejecutado-$anio-$i.csv") || die "ERROR: No se pudo crear el archivo para el listado\n";
+        print SALIDA "ID;FECHA;CENTRO;ACTIVIDAD;TRIMESTRE;IMPORTE;SALDO por TRIMESTRE;CONTROL;SALDO ACUMULADO\n";
+    }
+	my @reg_hash;
+    print "FECHA   | CENTRO | TRIMESTRE\nIMPORTE | SALDO x TRIMESTRE | GASTO PLANIFICADO | PRESUPUESTO EXCEDIDO\n";
+    while(<EJECUTADO>){
+        chomp($_);
+        @reg = split(";",$_);
+        if(any {/@reg[2]/} @Centros_filtrados){			
+            if(any {/@reg[4]/} @Trimestres_filtrados){            
+				@reg_hash = split(";","@reg[0];@reg[4];-@reg[5];@reg[3];@reg[7]");
+            	push @{$regXCentro_Fecha{@reg[2]}{@reg[1]}},@reg_hash ;
+            }
         }
     }
-    close(CONF);
+    while(<SANCIONADO>){
+        chomp($_);
+        @reg = split(";",$_);
+        if(any {/@reg[0]/} @Centros_filtrados){			
+            if(any {/@reg[1]/} @Trimestres_filtrados){            
+            	$sancionadoXCentro_Trim{@reg[0]}{@reg[1]} += &sumarDecimales;
+            }
+        }
+    }
+    foreach $centro (keys %sancionadoXCentro_Trim){
+        foreach $trim (keys %{%sancionadoXCentro_Trim{$centro}}){
+            @reg_hash = split(";","(++);$trim;$sancionadoXCentro_Trim{$centro}{$trim};0");
+            push @{$regXCentro_Fecha{$centro}{$fechaInicioTrim{$trim}}},@reg_hash;
+        }
+    }
+    my $saldoTrimestre;
+    my $saldoAcum;
+    my $trimAnterior;
+    my $control;
+    foreach my $centro (keys %regXCentro_Fecha){
+        $saldoAcum = 0;
+        $trimAnterior;
+        $saldoTrimestre = 0;
+        $i = 0;
+        foreach my $fecha (sort {$a <=> $b} keys %{%regXCentro_Fecha{$centro}}){ 
+            if (($trimAnterior ne $regXCentro_Fecha{$centro}{$fecha}[1]) && ($i > 0)){
+                $saldoTrimestre = 0; 
+                print"\n";
+            }
+            $trimAnterior = sprintf("%s",$regXCentro_Fecha{$centro}{$fecha}[1]);
+            $i++;
+            printf("%-8s|",$fecha);
+            printf("%-13s|",$centro);
+            printf("%-22s|\n",$regXCentro_Fecha{$centro}{$fecha}[1]);
+            printf("%-5.2f|",$regXCentro_Fecha{$centro}{$fecha}[2]);
+            @aux = split(",",$regXCentro_Fecha{$centro}{$fecha}[2]);
+            $num = "@aux[0].@aux[1]";
+            $saldoTrimestre += $num;
+            $saldoAcum += $num;
+            splice( @aux );
+            printf("%-5.2f|",$saldoTrimestre);
+            printf("%-5.2f|",$saldoAcum);
+            if($regXCentro_Fecha{$centro}{$fecha}[0] ne "(++)"){
+                if(any {/$regXCentro_Fecha{$centro}{$fecha}[4]/} @{$axc{$centro}}){
+                    print (" Si |");
+                    if($saldoTrimestre<0){
+                        print (" Si\n");
+                        $control = sprintf("%s","Presupuesto excedido");
+                    }else{
+                        print (" No\n");
+                        $control = sprintf("%s"," ");
+                    }
+
+                }else{
+                    print (" No |"); 
+                    if($saldoTrimestre<0){
+                        print (" Si\n");
+                        $control = sprintf("%s","Gasto no planificado,Presupuesto excedido");
+                    }else{
+                        print (" No\n");
+                        $control = sprintf("%s","Gasto no planificado");
+                    }
+                }               
+            }else{
+                print "(++)\n";
+                $control = sprintf("%s"," ");
+            }
+            if($opcionArchivo eq "s" || $opcionArchivo eq "S"){
+                print SALIDA "$regXCentro_Fecha{$centro}{$fecha}[0];";
+                print SALIDA "$fecha;";
+                print SALIDA "$centro;";
+                print SALIDA "$regXCentro_Fecha{$centro}{$fecha}[3];";
+                print SALIDA "$regXCentro_Fecha{$centro}{$fecha}[1];";
+                printf SALIDA "%4.2f;",$regXCentro_Fecha{$centro}{$fecha}[2];
+                printf SALIDA "%4.2f;",$saldoTrimestre;
+                printf SALIDA "%-42s;",$control;
+                printf SALIDA "%-4.2f\n",$saldoAcum;
+            }
+        }
+        print"\n";
+        print"\n";
+    }
+    close(EJECUTADO);
+    close(SANCIONADO);
+    if($opcionArchivo eq "s" || $opcionArchivo eq "S"){
+        close(SALIDA);
+    }
+    print "Presione ENTER para continuar\n";
+    <STDIN>;
 }
-=cut
 
 &menu;
