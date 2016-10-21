@@ -162,9 +162,10 @@ sub listadoControlPresupuestoEjecutado{
    		chomp($aux);
 		$aux=substr($aux, 0, -1);
 		my @arr = keys %centros;
+        my $bool;
 		foreach $centro (@arr){
-            my $bool=true;
-            if(index($centro,$aux) eq -1){
+            $bool=true;
+            if(index($centro,$aux) eq -1||length($centro)<length($aux)){
                 $bool =false;
             } 
             if(length($centro)<length($aux)){
@@ -466,73 +467,17 @@ sub abrirAXC{
 }
 
 sub filtroProvincia{
-    &opcListado;
-    &abrirAXC;
-    open(EJECUTADO,"<$FindBin::Bin/../imp/ejecutado-$anio.csv") || die "ERROR: No se pudo abrir el archivo ejecutado-$anio.csv\n";
-    print "Ingrese la provincia\n";
+	print "Ingrese la provincia\n";
     my $provincia = <STDIN>;
     chomp($provincia);
-    my $totalProv = 0;
-    my @reg;
-    print "Año presupuestario $anio";
-    printf("%45s\n",'Total ejecutado');
-    print "--------------------------------------------------------------------";
-    print "\n";
-    
-    my $i=0;
-    if($opcionArchivo eq "s" || $opcionArchivo eq "S"){
-        while(-e "$FindBin::Bin/../rep/listado-presupuesto-ejecutado-$anio-$i.csv"){
-            $i++;
-        }
-        open(SALIDA,">$FindBin::Bin/../rep/listado-presupuesto-ejecutado-$anio-$i.csv") || die "ERROR: No se pudo crear el archivo para el listado\n";
-        print SALIDA "Fecha;Centro;Nom Cen;Cod Act;Actividad;Trimestre;Gasto;Provincia;Control\n";
-    }
-
-    <EJECUTADO>;
-    my @reg;
-    printf("%-10s","Actividad");
-    printf("%-20s","Centro");
-    printf("%-10s","Gasto");
-    print("Gasto Planificado?");
-    print ("\n");
-    while(<EJECUTADO>){
-        chomp($_);
-        @reg = split(";",$_);
-        if(@reg[8] eq $provincia){
-            printf("%-10s", @reg[7]);
-            printf("%-20s", @reg[2]);
-            printf("%-10s", @reg[5]);
-            if(any {/@reg[7]/} %axc{@reg[2]}){
-                print ("Si");
-                if($opcionArchivo eq "s" || $opcionArchivo eq "S"){
-                    print SALIDA "@reg[1];@reg[2];@reg[9];@reg[7];@reg[3];@reg[4];@reg[5];@reg[8]; \n";
-                }
-            }else{
-                print ("No"); 
-                if($opcionArchivo eq "s" || $opcionArchivo eq "S"){
-                    print SALIDA "@reg[1];@reg[2];@reg[9];@reg[7];@reg[3];@reg[4];@reg[5];@reg[8];Gasto fuera de planificacion\n";
-                }               
-            }
-            print ("\n");
-            @aux = split(",",@reg[5]);
-            $num = "@aux[0].@aux[1]";
-            $totalXProv{@reg[8]} += $num;
-            splice( @aux );
-
-        }
-    }
-    print SALIDA "\n";
-    print "--------------------------------------------------------------------\n";
-    print "Total $provincia: $totalProv\n";
-    if($opcionArchivo eq "s" || $opcionArchivo eq "S"){
-        print SALIDA "Total @reg[8];$totalProv\n";
-    }   
-    close(EJECUTADO);
-    print "Presione ENTER para continuar\n";
-    <STDIN>;
+	local @prov_a_filtrar;
+	push @prov_a_filtrar, $provincia;
+    &opcListado;
+    &abrirAXC;
+    &filtrarprov;
 }
 
-sub filtrar{
+sub filtrarprov{
     open(EJECUTADO,"<$FindBin::Bin/../imp/ejecutado-$anio.csv") || die "ERROR: No se pudo abrir el archivo ejecutado-$anio.csv\n";
     print "Año presupuestario $anio";
     printf("%45s\n",'Total ejecutado');
@@ -561,11 +506,11 @@ sub filtrar{
     while(<EJECUTADO>){
         chomp($_);
         @reg = split(";",$_);
-        if(any {/@reg[8]/} @prov_a_filtrar){
+        if(any {$_ eq @reg[8]} @prov_a_filtrar){
             printf("%-10s", @reg[7]);
             printf("%-20s", @reg[2]);
             printf("%-10s", @reg[5]);
-            if(any {/@reg[7]/} @{$axc{@reg[2]}}){
+            if(any {$_ eq @reg[7]} @{$axc{@reg[2]}}){
                 print ("No"); 
                 if($opcionArchivo eq "s" || $opcionArchivo eq "S"){
                     print SALIDA "@reg[1];@reg[2];@reg[9];@reg[7];@reg[3];@reg[4];@reg[5];@reg[8]; \n";
@@ -591,8 +536,10 @@ sub filtrar{
             print SALIDA "Total $prov;$totalXProv{$prov}\n";
         }   
     }
+    if($opcionArchivo eq "s" || $opcionArchivo eq "S"){
+        close(SALIDA);
+    }  
     close(EJECUTADO);
-    splice( @prov_a_filtrar );
     print "Presione ENTER para continuar\n";
     <STDIN>;
 }
@@ -611,20 +558,21 @@ sub abrirProvincias{
 }
 
 sub filtroProvincias{
-    &opcListado;
-    &abrirAXC;
     print "Ingrese las provincias separadas por un ;\n";
     my $provincias = <STDIN>;
     chomp($provincias);
-    @prov_a_filtrar = split(";",$provincias);
-    &filtrar;
+    local @prov_a_filtrar = split(";",$provincias);
+    &opcListado;
+    &abrirAXC;
+    &filtrarprov;
 }
 
 sub sinFiltro{
+	local @prov_a_filtrar;
     &opcListado;
     &abrirProvincias;
     &abrirAXC;
-    &filtrar;
+    &filtrarprov;
 }
 sub trim_a_str{
 	my $i =0;
@@ -646,7 +594,6 @@ sub trim_a_str{
 }
 sub fechastrimestres{
     open(EJECUTADO,"<$FindBin::Bin/../mae/trimestres.csv") || die "ERROR: No se pudo abrir el archivo de fechas.csv\n";
-    %fechaInicioTrim;
     while(<EJECUTADO>){
         chomp($_);
         @reg = split(";",$_);
@@ -656,6 +603,7 @@ sub fechastrimestres{
 }
 
 sub generarListadoControlEjecutado{
+    local %fechaInicioTrim;
 	&opcListado;
 	&abrirAXC;
 	&trim_a_str;
@@ -666,8 +614,8 @@ sub generarListadoControlEjecutado{
     printf("%45s\n",'Control total ejecutado');
     print "--------------------------------------------------------------------";
     print "\n";
-	%sancionadoXCentro_Trim;
-	%regXCentro_Fecha;
+	my %sancionadoXCentro_Trim;
+	my %regXCentro_Fecha;
     local $i=0;
     if($opcionArchivo eq "s" || $opcionArchivo eq "S"){
         while(-e "$FindBin::Bin/../rep/listado-control-presupuesto-ejecutado-$anio-$i.csv"){
@@ -681,8 +629,8 @@ sub generarListadoControlEjecutado{
     while(<EJECUTADO>){
         chomp($_);
         @reg = split(";",$_);
-        if(any {/@reg[2]/} @Centros_filtrados){			
-            if(any {/@reg[4]/} @Trimestres_filtrados){            
+        if(any {$_ eq @reg[2]} @Centros_filtrados){			
+            if(any {$_ eq @reg[4]} @Trimestres_filtrados){            
 				@reg_hash = split(";","@reg[0];@reg[4];-@reg[5];@reg[3];@reg[7]");
             	push @{$regXCentro_Fecha{@reg[2]}{@reg[1]}},@reg_hash ;
             }
@@ -691,18 +639,20 @@ sub generarListadoControlEjecutado{
     while(<SANCIONADO>){
         chomp($_);
         @reg = split(";",$_);
-        if(any {/@reg[0]/} @Centros_filtrados){			
-            if(any {/@reg[1]/} @Trimestres_filtrados){            
+        if(any {$_ eq @reg[0]} @Centros_filtrados){			
+            if(any {$_ eq @reg[1]} @Trimestres_filtrados){            
             	$sancionadoXCentro_Trim{@reg[0]}{@reg[1]} += &sumarDecimales;
             }
         }
     }
+
     foreach $centro (keys %sancionadoXCentro_Trim){
         foreach $trim (keys %{%sancionadoXCentro_Trim{$centro}}){
             @reg_hash = split(";","(++);$trim;$sancionadoXCentro_Trim{$centro}{$trim};0");
             push @{$regXCentro_Fecha{$centro}{$fechaInicioTrim{$trim}}},@reg_hash;
         }
     }
+
     my $saldoTrimestre;
     my $saldoAcum;
     my $trimAnterior;
@@ -731,7 +681,7 @@ sub generarListadoControlEjecutado{
             printf("%-5.2f|",$saldoTrimestre);
             printf("%-5.2f|",$saldoAcum);
             if($regXCentro_Fecha{$centro}{$fecha}[0] ne "(++)"){
-                if(any {/$regXCentro_Fecha{$centro}{$fecha}[4]/} @{$axc{$centro}}){
+                if(any {$_ eq $regXCentro_Fecha{$centro}{$fecha}[4]} @{$axc{$centro}}){
                     print (" Si |");
                     if($saldoTrimestre<0){
                         print (" Si\n");
