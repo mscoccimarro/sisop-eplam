@@ -511,12 +511,12 @@ sub filtrarprov{
             printf("%-20s", @reg[2]);
             printf("%-10s", @reg[5]);
             if(any {$_ eq @reg[7]} @{$axc{@reg[2]}}){
-                print ("No"); 
+                print ("Si"); 
                 if($opcionArchivo eq "s" || $opcionArchivo eq "S"){
                     print SALIDA "@reg[1];@reg[2];@reg[9];@reg[7];@reg[3];@reg[4];@reg[5];@reg[8]; \n";
                 }
             }else{
-                print ("Si");
+                print ("No");
                 if($opcionArchivo eq "s" || $opcionArchivo eq "S"){
                     print SALIDA "@reg[1];@reg[2];@reg[9];@reg[7];@reg[3];@reg[4];@reg[5];@reg[8];Gasto fuera de planificacion\n";
                 }               
@@ -625,7 +625,7 @@ sub generarListadoControlEjecutado{
         print SALIDA "ID;FECHA;CENTRO;ACTIVIDAD;TRIMESTRE;IMPORTE;SALDO por TRIMESTRE;CONTROL;SALDO ACUMULADO\n";
     }
 	my @reg_hash;
-    print "FECHA   | CENTRO | TRIMESTRE\nIMPORTE | SALDO x TRIMESTRE | GASTO PLANIFICADO | PRESUPUESTO EXCEDIDO\n";
+    print "FECHA   | CENTRO | TRIMESTRE\nIMPORTE | SALDO x TRIM | SALDO ACUMULADO | GASTO PLANIFICADO | PRESUPUESTO EXCEDIDO\n";
     while(<EJECUTADO>){
         chomp($_);
         @reg = split(";",$_);
@@ -672,14 +672,14 @@ sub generarListadoControlEjecutado{
             printf("%-8s|",$fecha);
             printf("%-13s|",$centro);
             printf("%-22s|\n",$regXCentro_Fecha{$centro}{$fecha}[1]);
-            printf("%-5.2f|",$regXCentro_Fecha{$centro}{$fecha}[2]);
+            printf("%-5.2f|",$regXCentro_Fecha{$centro}{$fecha}[2]); #IMPORTE
             @aux = split(",",$regXCentro_Fecha{$centro}{$fecha}[2]);
             $num = "@aux[0].@aux[1]";
             $saldoTrimestre += $num;
             $saldoAcum += $num;
             splice( @aux );
-            printf("%-5.2f|",$saldoTrimestre);
-            printf("%-5.2f|",$saldoAcum);
+            printf("%-5.2f|",$saldoTrimestre);#SALDO ACUMULADO TRIMESTRE-CENTRO
+            printf("%-5.2f|",$saldoAcum);#SALDO TOTAL CENTRO
             if($regXCentro_Fecha{$centro}{$fecha}[0] ne "(++)"){
                 if(any {$_ eq $regXCentro_Fecha{$centro}{$fecha}[4]} @{$axc{$centro}}){
                     print (" Si |");
@@ -713,7 +713,7 @@ sub generarListadoControlEjecutado{
                 print SALIDA "$regXCentro_Fecha{$centro}{$fecha}[1];";
                 printf SALIDA "%4.2f;",$regXCentro_Fecha{$centro}{$fecha}[2];
                 printf SALIDA "%4.2f;",$saldoTrimestre;
-                printf SALIDA "%-42s;",$control;
+                printf SALIDA "%-15s;",$control;
                 printf SALIDA "%-4.2f\n",$saldoAcum;
             }
         }
